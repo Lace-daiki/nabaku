@@ -3,12 +3,35 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useLoginMutation } from '@/hooks/useAuthMutation';
 
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const router = useRouter()
+  const [error, setError] = useState('');
+  const loginMutation = useLoginMutation();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    // Basic validation
+    if (!id || !password) {
+      setError('Email and password are required.');
+      return;
+    }
+
+    try {
+      await loginMutation.mutateAsync({ id, password });
+      router.push('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Login failed. Please try again.');
+    }
+  };
 
   return (
     <div className="flex h-screen  items-center justify-center">
@@ -27,14 +50,15 @@ export default function LoginPage() {
         <div className="">
           <h1 className="text-[48px] text-[#1C1E4C] font-semibold ">Welcome back!</h1>
           <p className="text-[18px] text-[#1C1E4C] mb-6 ">Welcome back! Please enter your details</p>
+          {error && <p className="text-red-500 mb-4">{error}</p>}
 
           <div className="space-y-8 w-[886px] h-[266px] bg-[#F3F3F3] rounded-[40px] flex flex-col justify-center p-4">
             <input
               type="email"
               placeholder="Enter phone number or email of the organization"
               className="w-full p-3 border rounded-[40px]"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={id}
+              onChange={(e) => setId(e.target.value)}
             />
 
             <input
@@ -63,10 +87,18 @@ export default function LoginPage() {
             <p className="mt-2 text-center text-gray-500 text-[16px] font-medium">
               Don’t have an account? <Link href="/register" className="text-[#1C1E4C]">Sign up</Link>
             </p>
-            <Link href="#" className=" bg-[#1C1E4C] text-white text-center py-[15px] px-[24px] rounded-[40px]">Sign in</Link>
+            <button 
+            onClick={handleSubmit}
+                type="submit" 
+                className="bg-[#1C1E4C] text-white text-center py-[15px] px-[24px] rounded-[40px] cursor-pointer"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? 'Signing in...' : 'Sign in'}
+              </button>
           </div>
         </div>
       </div>
+      
     </div>
   );
 }

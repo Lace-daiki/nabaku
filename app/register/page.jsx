@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link'
+import { useRegisterMutation } from '@/hooks/useAuthMutation';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,35 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [error, setError] = useState('');
+  const [showPopup, setShowPopup] = useState(false);
+  const registerMutation = useRegisterMutation();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (!agreeTerms) {
+      setError('You must agree to the terms of use');
+      return;
+    }
+
+    // Add more validation here if needed
+
+    try {
+      await registerMutation.mutateAsync({ email, phone, password });
+      // Optionally reset form fields or redirect
+      setShowPopup(true); // Show the popup on successful registration
+      setTimeout(() => setShowPopup(false), 5000);
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.');
+    }
+  };
 
   return (
     <div className="flex h-screen  items-center justify-center">
@@ -21,6 +51,7 @@ export default function SignupPage() {
         <div className="">
           <h1 className="text-[48px] text-[#1C1E4C] font-semibold"><em>sign</em> up as an organization</h1>
           <p className="text-[18px] text-[#1C1E4C] mb-6">This would also form your login details and contact information as well</p>
+          {error && <p className="text-red-500">{error}</p>}
 
           <div className="space-y-8 w-[886px] h-[266px] bg-[#F3F3F3] rounded-[40px] flex flex-col justify-center p-4">
             <div className="flex space-x-4">
@@ -70,8 +101,22 @@ export default function SignupPage() {
             <p className="mt-2 text-center text-gray-500 text-[16px] font-medium">
               Already have an account? <Link href="/login" className="text-[#1C1E4C]">Sign in</Link>
             </p>
-            <Link href="#" className=" bg-[#1C1E4C] text-white text-center py-[15px] px-[24px] rounded-[40px]">Sign up</Link>
+            <button 
+                onClick={handleSubmit}
+                type="submit" 
+                className="bg-[#1C1E4C] text-white text-center py-[15px] px-[24px] rounded-[40px]"
+                disabled={registerMutation.isPending}
+              >
+                {registerMutation.isPending ? 'Signing up...' : 'Sign up'}
+              </button>
           </div>
+          {showPopup && (
+            <div className="fixed top-0 left-0 right-0 mt-4 flex justify-center">
+              <div className="bg-green-500 text-white p-4 rounded-lg shadow-lg">
+                Please check your email for the activation link.
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
