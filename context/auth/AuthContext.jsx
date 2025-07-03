@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { authService } from '@/services/auth/auth';
 
 const AuthContext = createContext();
 
@@ -14,33 +15,44 @@ export function AuthProvider({ children }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Check for existing token/user in localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Failed to parse user data', error);
-        logout();
+    const initializeAuth = () => {
+      const token = authService.getCurrentToken();
+      const storedUser = localStorage.getItem('user');
+      
+      if (token && storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error('Failed to parse user data', error);
+          logout();
+        }
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (userData) => {
-    localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     setIsAuthenticated(true);
+    // Store user data in localStorage
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
     setIsAuthenticated(false);
     queryClient.clear();
     router.push('/login');
+  };
+
+  const isAdmin = () => {
+    return user?.role === 'admin';
   };
 
   return (
@@ -51,6 +63,7 @@ export function AuthProvider({ children }) {
         loading,
         login,
         logout,
+        isAdmin,
       }}
     >
       {children}
@@ -58,4 +71,10 @@ export function AuthProvider({ children }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

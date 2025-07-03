@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link'
-import { useRegisterMutation } from '@/hooks/useAuthMutation';
+import { useRegisterMutation } from '@/hooks/auth/useAuthMutation';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');

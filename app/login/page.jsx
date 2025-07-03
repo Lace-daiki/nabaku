@@ -2,42 +2,51 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useLoginMutation } from '@/hooks/useAuthMutation';
-
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useLoginMutation } from '@/hooks/auth/useAuthMutation';
+import { ADMIN_CREDENTIALS } from '@/config/admin';
+import { useAuth } from '@/context/auth/AuthContext';
 
 export default function LoginPage() {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const router = useRouter()
   const [error, setError] = useState('');
-  const loginMutation = useLoginMutation();
+  const { mutate: login, isPending } = useLoginMutation();
+  const router = useRouter();
+  const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Basic validation
     if (!id || !password) {
-      setError('Email and password are required.');
+      setError('Email and password are required');
       return;
     }
 
     try {
-      await loginMutation.mutateAsync({ id, password });
-      router.push('/dashboard');
+      // Check if credentials match admin
+      if (id === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+        // Set admin user in auth context
+        authLogin({ ...ADMIN_CREDENTIALS });
+        router.push('/admin');
+        return;
+      }
+
+      // If not admin, proceed with normal login
+      await login({ id, password });
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
     }
   };
 
   return (
-    <div className="flex h-screen  items-center justify-center">
+    <div className="flex h-screen items-center justify-center">
       {/* Left Section - Illustration */}
       <div className="border-1 rounded-[40px]">
-        <div className=" bg-[#8E92BC] rounded-[40px] p-8">
+        <div className="bg-[#8E92BC] rounded-[40px] p-8">
           <Image src="/login.png" alt="Illustration" width={400} height={746} />
         </div>
       </div>
@@ -85,20 +94,19 @@ export default function LoginPage() {
 
           <div className='flex justify-between mt-10'>
             <p className="mt-2 text-center text-gray-500 text-[16px] font-medium">
-              Don’t have an account? <Link href="/register" className="text-[#1C1E4C]">Sign up</Link>
+              Don't have an account? <Link href="/register" className="text-[#1C1E4C]">Sign up</Link>
             </p>
             <button 
-            onClick={handleSubmit}
-                type="submit" 
-                className="bg-[#1C1E4C] text-white text-center py-[15px] px-[24px] rounded-[40px] cursor-pointer"
-                disabled={loginMutation.isPending}
-              >
-                {loginMutation.isPending ? 'Signing in...' : 'Sign in'}
-              </button>
+              onClick={handleSubmit}
+              type="submit" 
+              className="bg-[#1C1E4C] text-white text-center py-[15px] px-[24px] rounded-[40px] cursor-pointer"
+              disabled={isPending}
+            >
+              {isPending ? 'Signing in...' : 'Sign in'}
+            </button>
           </div>
         </div>
       </div>
-      
     </div>
   );
 }
