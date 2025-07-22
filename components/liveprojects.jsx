@@ -1,9 +1,21 @@
 
+import React, { useState } from 'react';
 import ProjectCard from '@/components/projects/ProjectCard';
 import { useProjects, useCreateProject, useDeleteProject } from '@/hooks/project/useProjectsQuery';
 import NewProjectModal from '@/components/projects/NewProjectModal';
 
 const LiveProjects = () => {
+
+    // State for modal visibility
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    // State for form data
+    const [formData, setFormData] = useState({
+        title: '',
+        coverImage: null,
+        description: '',
+        mediaFiles: [],
+        targetAmount: ''
+    });
 
     // Fetch projects with React Query
     const { data: projects = [], isLoading, isError, refetch } = useProjects();
@@ -34,7 +46,7 @@ const LiveProjects = () => {
         <div className="w-[798px] h-auto border border-gray-300 rounded-lg p-4 bg-white shadow-md mt-5">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold">Live projects</h2>
-                <button className="bg-blue-900 text-white px-4 py-2 rounded-lg" onClick={handleNewProjectClick}>New Project</button>
+                <button className="bg-blue-900 text-white px-4 py-2 rounded-lg cursor-pointer" onClick={handleNewProjectClick}>New Project</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {projects.length === 0 ? (
@@ -59,6 +71,10 @@ const LiveProjects = () => {
                 ))
             )}
             </div>
+            <NewProjectModal 
+                isOpen={isModalOpen} 
+                onClose={handleCloseModal}
+            />
         </div>
     );
 };

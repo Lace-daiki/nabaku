@@ -10,6 +10,7 @@ import SearchBar from "@/components/searchbar";
 import NewProjectModal from '@/components/projects/NewProjectModal';
 import ProjectCard from '@/components/projects/ProjectCard';
 import ProjectDetailsContent from '@/components/projects/ProjectDetailsContent';
+import { toast } from 'react-toastify';
 
 export default function Projects() {
   const router = useRouter();
@@ -72,8 +73,10 @@ export default function Projects() {
     try {
       await createProjectMutation.mutateAsync(formData);
       handleCloseModal();
+      toast.success('Project created successfully!');
     } catch (error) {
       console.error('Error creating project:', error);
+      toast.error('Error creating project');
     }
   };
 
@@ -85,8 +88,10 @@ export default function Projects() {
           setSelectedProject(null);
         }
         refetch(); // Refresh the projects list
+        toast.success('Project deleted successfully!');
       } catch (error) {
         console.error('Error deleting project:', error);
+        toast.error('Error deleting project');
       }
     }
   };
@@ -110,6 +115,7 @@ export default function Projects() {
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
         Failed to load projects
       </div>
+      {toast.error('Failed to load projects')}
     </div>
   );
 

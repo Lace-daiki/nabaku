@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Card from '@/components/general/card';
+import { toast } from 'react-toastify';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);
@@ -19,7 +20,7 @@ export default function ProjectsPage() {
         const data = await response.json();
         setProjects(data);
       } catch (err) {
-        setError(err.message);
+        toast.error(err.message);
       } finally {
         setLoading(false);
       }

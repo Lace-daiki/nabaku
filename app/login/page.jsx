@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useLoginMutation } from '@/hooks/auth/useAuthMutation';
 import { ADMIN_CREDENTIALS } from '@/config/admin';
 import { useAuth } from '@/context/auth/AuthContext';
+import { toast } from 'react-toastify';
 
 export default function LoginPage() {
   const [id, setId] = useState('');
@@ -22,7 +23,7 @@ export default function LoginPage() {
     setError('');
 
     if (!id || !password) {
-      setError('Email and password are required');
+      toast.error('Email and password are required');
       return;
     }
 
@@ -38,7 +39,7 @@ export default function LoginPage() {
       // If not admin, proceed with normal login
       await login({ id, password });
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
+      toast.error(err.message || 'Login failed. Please try again.');
     }
   };
 
@@ -65,7 +66,7 @@ export default function LoginPage() {
             <input
               type="email"
               placeholder="Enter phone number or email of the organization"
-              className="w-full p-3 border rounded-[40px]"
+              className="w-full h-[66px] py-[8px] px-[32px] border rounded-[64px]"
               value={id}
               onChange={(e) => setId(e.target.value)}
             />
@@ -73,7 +74,7 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="Enter Password"
-              className="w-full p-3 border rounded-[40px]"
+              className="w-full h-[66px] py-[8px] px-[32px] border rounded-[64px]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

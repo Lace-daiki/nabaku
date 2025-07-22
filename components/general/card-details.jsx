@@ -5,6 +5,7 @@ import { faUsers, faClock, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createDonation } from '@/services/donate/donation';
+import { toast } from 'react-toastify';
 
 export default function CardDetails({ project }) {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function CardDetails({ project }) {
     if (!project) {
       setError('Project not found');
       setIsLoading(false);
+      toast.error('Project not found');
     } else {
       setIsLoading(false);
     }
@@ -49,6 +51,7 @@ export default function CardDetails({ project }) {
       router.push('/projects');
     } catch (error) {
       console.error('Error ending project:', error);
+      toast.error('Error ending project');
     }
   };
 
@@ -90,6 +93,7 @@ export default function CardDetails({ project }) {
       // Extract the error message from the error object
       const errorMessage = error.response?.data?.message || error.message || 'Failed to process donation. Please try again.';
       setError(errorMessage);
+      toast.error(errorMessage);
       
       // If there's an error, keep the modal open but reset the form
       setDonationData({

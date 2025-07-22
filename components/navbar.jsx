@@ -3,13 +3,23 @@
 import { useLogoutMutation } from '@/hooks/auth/useAuthMutation';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 const Navbar = ({ user }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const logoutMutation = useLogoutMutation();
+  const pathname = usePathname();
 
   // Extract first letter of email for avatar
   const avatarLetter = user?.email?.charAt(0).toUpperCase() || 'U';
+
+  // Determine page title based on pathname
+  let pageTitle = 'Dashboard';
+  if (pathname.startsWith('/dashboard/projects')) pageTitle = 'Projects';
+  else if (pathname.startsWith('/dashboard/transaction')) pageTitle = 'Transactions';
+  else if (pathname.startsWith('/dashboard/wallet')) pageTitle = 'Wallet';
+  else if (pathname.startsWith('/dashboard/settings')) pageTitle = 'Settings';
+  else if (pathname.startsWith('/dashboard')) pageTitle = 'Dashboard';
 
   return (
     <header className="bg-white shadow-md">
@@ -34,7 +44,9 @@ const Navbar = ({ user }) => {
           {/* Logo and desktop navigation */}
           <div className="flex items-center">
             <div className="hidden md:block">
-              <h1 className="text-lg font-semibold text-[#1C1E4C]">Dashboard</h1>
+              <h1 className="text-[24px] font-bold text-[#1C1E53]">
+                {pageTitle}
+              </h1>
             </div>
           </div>
 

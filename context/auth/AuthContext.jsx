@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
       const token = authService.getCurrentToken();
       const storedUser = localStorage.getItem('user');
       
-      if (token && storedUser) {
+      if (token && storedUser && storedUser !== 'undefined') {
         try {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);

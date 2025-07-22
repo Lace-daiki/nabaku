@@ -3,6 +3,7 @@
 import { use } from 'react';
 import { useProjectDetails } from '@/hooks/project/useProjectsQuery';
 import CardDetails from '@/components/general/card-details';
+import { toast } from 'react-toastify';
 
 export default function ProjectPage({ params }) {
   const unwrappedParams = use(params);
@@ -17,6 +18,7 @@ export default function ProjectPage({ params }) {
   }
 
   if (isError) {
+    toast.error('Failed to load project details');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-red-500">Failed to load project details</p>
@@ -25,6 +27,7 @@ export default function ProjectPage({ params }) {
   }
 
   if (!project) {
+    toast.error('Project not found');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-yellow-500">Project not found</p>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link'
 import { useRegisterMutation } from '@/hooks/auth/useAuthMutation';
+import { toast } from 'react-toastify';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -20,12 +21,12 @@ export default function SignupPage() {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
     if (!agreeTerms) {
-      setError('You must agree to the terms of use');
+      toast.error('You must agree to the terms of use');
       return;
     }
 
@@ -35,9 +36,10 @@ export default function SignupPage() {
       await registerMutation.mutateAsync({ email, phone, password });
       // Optionally reset form fields or redirect
       setShowPopup(true); // Show the popup on successful registration
+      toast.success('Registration successful!');
       setTimeout(() => setShowPopup(false), 5000);
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      toast.error(err.message || 'Registration failed. Please try again.');
     }
   };
 
@@ -51,21 +53,21 @@ export default function SignupPage() {
         <div className="">
           <h1 className="text-[48px] text-[#1C1E4C] font-semibold"><em>sign</em> up as an organization</h1>
           <p className="text-[18px] text-[#1C1E4C] mb-6">This would also form your login details and contact information as well</p>
-          {error && <p className="text-red-500">{error}</p>}
+          {error && <p className="text-red-500 mb-4">{error}</p>}
 
           <div className="space-y-8 w-[886px] h-[266px] bg-[#F3F3F3] rounded-[40px] flex flex-col justify-center p-4">
             <div className="flex space-x-4">
               <input
                 type="email"
                 placeholder="Contact email of the organization"
-                className="w-full p-3 border rounded-lg"
+                className="w-full h-[66px] py-[8px] px-[32px] border rounded-[64px]"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
               <input
                 type="tel"
                 placeholder="Contact phone of the organization"
-                className="w-full p-3 border rounded-lg"
+                className="w-full h-[66px] py-[8px] px-[32px] border rounded-[64px]"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
@@ -74,14 +76,14 @@ export default function SignupPage() {
               <input
                 type="password"
                 placeholder="Confirm Password"
-                className="w-full p-3 border rounded-lg"
+                className="w-full h-[66px] py-[8px] px-[32px] border rounded-[64px]"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <input
                 type="password"
                 placeholder="Retype Password"
-                className="w-full p-3 border rounded-lg"
+                className="w-full h-[66px] py-[8px] px-[32px] border rounded-[64px]"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />

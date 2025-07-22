@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark, faExclamationTriangle, faCircleNotch, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { useCreateProject } from '@/hooks/project/useProjectMutations';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 export default function NewProjectModal({ isOpen, onClose }) {
   const router = useRouter();
@@ -31,6 +32,7 @@ export default function NewProjectModal({ isOpen, onClose }) {
     if (type === 'cover_image') {
       const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
       if (!validTypes.includes(file.type)) {
+        toast.error('Invalid file format. Only .png, .jpg and .jpeg formats are allowed!');
         setFileError('Invalid file format. Only .png, .jpg and .jpeg formats are allowed!');
         return false;
       }
@@ -55,16 +57,15 @@ export default function NewProjectModal({ isOpen, onClose }) {
     e.preventDefault();
     setAuthError(false);
     setFileError('');
-    
     if (fileError) {
+      toast.error(fileError);
       return;
     }
-
     try {
       const response = await createMutation.mutateAsync(formData);
       if (response.success) {
         setSuccess(true);
-        // Close modal after 2 seconds
+        toast.success('Project created successfully!');
         setTimeout(() => {
           onClose();
           setSuccess(false);
@@ -74,14 +75,15 @@ export default function NewProjectModal({ isOpen, onClose }) {
       }
     } catch (error) {
       console.error('Error creating project:', error);
-      
       if (error.response?.status === 401) {
         setAuthError(true);
+        toast.error('Session Expired. You\'ll be redirected to login in 5 seconds...');
         setTimeout(() => {
           router.push('/login');
         }, 5000);
       } else {
         setFileError(error.message || 'Failed to create project. Please try again.');
+        toast.error(error.message || 'Failed to create project. Please try again.');
       }
     }
   };
@@ -103,39 +105,9 @@ export default function NewProjectModal({ isOpen, onClose }) {
         </div>
 
         {/* Success Message */}
-        {success && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded flex items-start">
-            <FontAwesomeIcon icon={faCheckCircle} className="mt-1 mr-2" />
-            <span>Project created successfully!</span>
-          </div>
-        )}
-
         {/* Authentication Error */}
-        {authError && !success && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded flex items-start">
-            <FontAwesomeIcon icon={faExclamationTriangle} className="mt-1 mr-2" />
-            <div>
-              <p className="font-medium">Session Expired</p>
-              <p className="text-sm">You'll be redirected to login in 5 seconds...</p>
-            </div>
-          </div>
-        )}
-
         {/* File Error */}
-        {fileError && !success && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded flex items-start">
-            <FontAwesomeIcon icon={faExclamationTriangle} className="mt-1 mr-2" />
-            <span>{fileError}</span>
-          </div>
-        )}
-
         {/* General Error (from mutation) */}
-        {createMutation.error && !authError && !fileError && !success && (
-          <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded flex items-start">
-            <FontAwesomeIcon icon={faExclamationTriangle} className="mt-1 mr-2" />
-            <span>{createMutation.error.message}</span>
-          </div>
-        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className={success ? 'hidden' : ''}>

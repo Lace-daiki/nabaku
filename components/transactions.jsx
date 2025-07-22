@@ -6,20 +6,24 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilter, faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/auth/AuthContext';
+import { transactionsService } from '@/services/transactions/transactions';
 
-// Mock data function
+// Fetch transactions from API
 const fetchTransactions = async () => {
-  const statuses = ['Successful', 'Pending', 'Failed'];
-  const projects = ['School Project', 'Hospital Renovation', 'Community Center', 'Road Construction'];
-  
-  return Array.from({ length: 15 }).map((_, i) => ({
-    id: `#${Math.floor(1000 + Math.random() * 9000)}`,
-    time: `${i + 1} ${i === 0 ? 'min' : 'mins'} ago`,
-    name: ['John Doe', 'Jane Smith', 'Michael Johnson', 'Sarah Williams'][i % 4],
-    amount: `N${(Math.random() * 1000000).toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
-    project: projects[i % projects.length],
-    status: statuses[i % statuses.length],
-  }));
+  const response = await transactionsService.getAllTransactions();
+  // Map API data to table format
+  if (response && response.data) {
+    return response.data.map((tx) => ({
+      id: tx.tx_ref || tx._id,
+      time: new Date(tx.createdAt).toLocaleString(),
+      name: tx.fullname || tx.email || 'Anonymous',
+      amount: `N${Number(tx.amount).toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+      project: tx.project || '',
+      status: tx.status || '',
+      raw: tx, // keep original for future use
+    }));
+  }
+  return [];
 };
 
 export default function TransactionsTable() {
@@ -231,7 +235,6 @@ export default function TransactionsTable() {
               <th className="py-3 px-4">TOTAL</th>
               <th className="py-3 px-4">PROJECT</th>
               <th className="py-3 px-4">STATUS</th>
-              <th className="py-3 px-4">ACTIONS</th>
             </tr>
           </thead>
           <tbody className='bg-[#E9E7FD] rounded-[80px]'>
@@ -247,11 +250,6 @@ export default function TransactionsTable() {
                     <span className={`${getStatusColor(tx.status)} py-1 px-3 rounded-full text-xs font-medium`}>
                       {tx.status}
                     </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <button className="text-gray-500 hover:text-gray-700" aria-label="More options">
-                      <i className="fas fa-ellipsis-v"></i>
-                    </button>
                   </td>
                 </tr>
               ))
