@@ -1,37 +1,48 @@
 'use client';
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { API_BASE_URL } from '@/lib/contants';
+import { toast } from 'react-toastify';
 
 export default function SetupPage2(props) {
   const { street, city, zipCode, onChange, error } = props;
   const [states, setStates] = useState([]);
   const [selectedState, setSelectedState] = useState('');
+
   useEffect(() => {
-    // Fetch states from the API
     const fetchStates = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/authentication/states`);
         const data = await response.json();
         
         if (data.success) {
-          setStates(data.data); // Set the states array from the response
+          setStates(data.data);
         } else {
-          console.error('Failed to fetch states:', data.message);
+          toast.error(`Failed to fetch states: ${data.message}`);
         }
       } catch (error) {
-        console.error('Error fetching states:', error);
+        toast.error('Error fetching states. Please try again later.');
       }
     };
     fetchStates();
   }, []);
+
   const handleStateChange = (e) => {
     setSelectedState(e.target.value);
-    onChange(e); // Call the onChange function to update the form state
+    onChange(e);
+  };
+
+  const handleZipCodeChange = (e) => {
+    const value = e.target.value;
+    if (/^\d{0,6}$/.test(value)) {
+      onChange(e);
+      if (value.length > 0 && value.length !== 6) {
+        toast.error('Zip code must be exactly 6 characters.');
+      }
+    }
   };
 
   return (
-    <div className="">
+    <div>
       <h1 className="text-[48px] text-[#1C1E4C] font-semibold">More information about your organization</h1>
       <p className="text-[18px] text-[#1C1E4C] mb-6">
         We display your address to donors not just because it is a legal requirement but because having an address helps build trust with potential donors.
@@ -66,8 +77,9 @@ export default function SetupPage2(props) {
             placeholder="Zip Code"
             className="w-full h-[66px] py-[8px] px-[32px] border border-[#8E92BC] rounded-[64px]"
             value={zipCode}
-            onChange={onChange}
+            onChange={handleZipCodeChange}
             required
+            maxLength={6}
           />
           <select
             name="state"
@@ -78,7 +90,7 @@ export default function SetupPage2(props) {
           >
             <option value="">Select State</option>
             {states.map((state) => (
-              <option key={state} value={state}>{state}</option> // Use state name as key
+              <option key={state} value={state}>{state}</option>
             ))}
           </select>
         </div>

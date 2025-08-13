@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import Stats from '@/components/wallet/stats';
 import { CashflowChart } from "@/components/wallet/cash-chart";
 import RecentWithdrawals from '@/components/wallet/recent-withdrawals';
-import { fetchWalletBalance, fetchDonationGraphByYear } from '@/services/wallet';
+import { fetchWalletBalance, fetchDonationGraphByYear } from '@/services/wallet/wallet';
+import { fetchBankDetails, processWithdrawal } from '@/services/wallet/withdrawals/withdrawals';
 
 const currentYear = new Date().getFullYear();
 
@@ -32,22 +33,99 @@ const fetchWalletData = async () => {
 export default function WalletPage() {
   const { data, isLoading } = useQuery(['wallet'], fetchWalletData);
   const {
-    data: incomeData,
-    isLoading: isIncomeLoading,
-  } = useQuery(['donation-graph', currentYear], () => fetchDonationGraphByYear(currentYear));
+    data: cashflowData,
+    isLoading: isCashflowLoading
+  } = useQuery(
+    ['donation-graph', currentYear],
+    () => fetchDonationGraphByYear(currentYear),
+    {
+      select: (data) => {
+        // Check if data and data.dataByMonth are defined
+        if (data && data.dataByMonth) {
+          const donations = data.dataByMonth.map(item => item.donations).reduce((acc, curr) => acc + curr, 0) || 0;
+          const withdrawals = data.dataByMonth.map(item => item.withdrawals).reduce((acc, curr) => acc + curr, 0) || 0;
+          const activity = donations + withdrawals; // Corrected activity calculation
+          return {
+            donations,
+            withdrawals,
+            activity
+          };
+        }
+        // Return default values if data is not available
+        return {
+          donations: 0,
+          withdrawals: 0,
+          activity: 0
+        };
+      }
+    }
+  );
+
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [bankId, setBankId] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  // Fetch bank details when modal opens
+  useEffect(() => {
+    const getBankDetails = async () => {
+      if (showWithdrawModal) {
+        try {
+          const response = await fetchBankDetails();
+          if (response.status === 'success') {
+            setBankId(response.data.id);
+          }
+        } catch (error) {
+          console.error('Failed to fetch bank details:', error);
+        }
+      }
+    };
+    getBankDetails();
+  }, [showWithdrawModal]); // Ensure this effect runs when showWithdrawModal changes
 
-  // Use mock spend data for now
-  const spendData = [1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 10, 11];
+  if (isLoading || isCashflowLoading) return <div className="p-8">Loading wallet...</div>;
 
-  if (isLoading || isIncomeLoading) return <div className="p-8">Loading wallet...</div>;
+  // Calculate donor count (count of donation transactions)
+  const donorCount = data?.activity?.filter(item => item.type === 'donation').length || 0;
+
+  // Calculate withdrawal count
+  const withdrawalCount = data?.activity?.filter(item => item.type === 'withdrawal').length || 0;
+
+  
+
+  // Handle withdrawal submission
+  const handleWithdraw = async () => {
+    if (!withdrawAmount || !bankId) return;
+
+    setIsProcessing(true);
+    try {
+      const response = await processWithdrawal(withdrawAmount, bankId);
+      if (response.status === 'success') {
+        alert('Withdrawal successful!');
+        setShowWithdrawModal(false);
+        // Optionally refetch wallet data here
+      } else {
+        alert(`Withdrawal failed: ${response.message}`);
+      }
+    } catch (error) {
+      alert('An error occurred during withdrawal');
+      console.error('Withdrawal error:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
 
   return (
     <div className="flex justify-evenly">
       {/* Top Overview Section */}
       <div className="flex flex-col gap-4">
-        <Stats />
+        <Stats
+          totalDonations={cashflowData.donations}
+          totalWithdrawals={cashflowData.withdrawals}
+          totalActivity={cashflowData.activity}
+          donorCount={donorCount}
+          withdrawalCount={withdrawalCount}
+        />
 
         {/* Cashflow Chart (API version) */}
         <div className="w-[768px] h-[386px] bg-white p-6 rounded-lg shadow-sm">
@@ -55,7 +133,10 @@ export default function WalletPage() {
           <div className=" w-full h-[235px] bg-gray-100 rounded-lg flex items-center">
             {/* Chart with API data */}
             <div className="w-full h-full">
-              <CashflowChart income={incomeData || Array(12).fill(0)} spend={spendData} />
+              <CashflowChart
+                donations={cashflowData?.donations || Array(12).fill(0)}
+                withdrawals={cashflowData?.withdrawals || Array(12).fill(0)}
+              />
             </div>
           </div>
           <div className="text-sm text-gray-500 mt-2 ">Last update: Dec 31, 2024</div>
@@ -69,7 +150,7 @@ export default function WalletPage() {
         <div className="w-[372px] h-[180px] col-span-1 bg-white p-4 rounded-lg shadow-sm space-y-2">
           <p className="text-[18px] font-bold text-[#1C1E53]">Current Balance</p>
           <h2 className="text-[32px] text-[#1C1E53] font-medium">
-            ₦ { typeof data.balance === 'number' ? data.balance.toLocaleString() : '0.00'}
+            ₦ {typeof data.balance === 'number' ? data.balance.toLocaleString() : '0.00'}
           </h2>
           <button
             className="w-full mt-2 bg-[#1C1E4C] px-[24px] py-[15px] text-white rounded-[40px] text-[14px] font-normal cursor-pointer"
@@ -128,10 +209,11 @@ export default function WalletPage() {
                 Cancel
               </button>
               <button
-                className="px-4 py-2 rounded bg-[#1C1E4C] text-white hover:bg-[#23255a]"
-                // onClick={handleWithdraw} // Add logic later
+                onClick={handleWithdraw}
+                disabled={isProcessing}
+                className={`px-4 py-2 rounded ${isProcessing ? 'bg-gray-400' : 'bg-[#1C1E4C]'} text-white hover:bg-[#23255a]`}
               >
-                Withdraw
+                {isProcessing ? 'Processing...' : 'Withdraw'}
               </button>
             </div>
           </div>

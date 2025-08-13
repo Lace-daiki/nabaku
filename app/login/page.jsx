@@ -8,6 +8,7 @@ import { useLoginMutation } from '@/hooks/auth/useAuthMutation';
 import { ADMIN_CREDENTIALS } from '@/config/admin';
 import { useAuth } from '@/context/auth/AuthContext';
 import { toast } from 'react-toastify';
+import ForgetPasswordModal from '@/components/auth/forgot-password';
 
 export default function LoginPage() {
   const [id, setId] = useState('');
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const { mutate: login, isPending } = useLoginMutation();
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to manage modal visibility
   const router = useRouter();
   const { login: authLogin } = useAuth();
 
@@ -89,7 +91,12 @@ export default function LoginPage() {
                 />
                 Keep me logged in
               </label>
-              <Link href="" className="text-[#54577A]">Forgot password?</Link>
+              <button 
+                onClick={() => setIsModalOpen(true)} // Open the modal on click
+                className="text-[#54577A] focus:outline-none cursor-pointer"
+              >
+                Forgot password?
+              </button>
             </div>
           </div>
 
@@ -108,6 +115,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      <ForgetPasswordModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

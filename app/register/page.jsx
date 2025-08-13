@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link'
+import Link from 'next/link';
 import { useRegisterMutation } from '@/hooks/auth/useAuthMutation';
 import { toast } from 'react-toastify';
 
@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState('');
   const [showPopup, setShowPopup] = useState(false);
+  const [numberError, setNumberError] = useState('');
   const registerMutation = useRegisterMutation();
 
   const handleSubmit = async (e) => {
@@ -43,14 +44,22 @@ export default function SignupPage() {
     }
   };
 
+  const handleNumber = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove all non-digit characters
+    if (value.length <= 11) {
+      setPhone(value);
+      setNumberError(value.length < 11 ? 'Phone must be 11 digits' : '');
+    }
+  };
+
   return (
-    <div className="flex h-screen  items-center justify-center">
+    <div className="flex h-screen items-center justify-center">
       {/* Left Section - Signup Form */}
       <div className="border-1 rounded-[40px] m-4 p-8 w-[966px] h-[730px] flex flex-col justify-center">
-        <div className="mb-30 ">
+        <div className="mb-30">
           <Image src="/nabaku.png" alt="Illustration" width={100} height={100} />
         </div>
-        <div className="">
+        <div>
           <h1 className="text-[48px] text-[#1C1E4C] font-semibold"><em>sign</em> up as an organization</h1>
           <p className="text-[18px] text-[#1C1E4C] mb-6">This would also form your login details and contact information as well</p>
           {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -69,20 +78,21 @@ export default function SignupPage() {
                 placeholder="Contact phone of the organization"
                 className="w-full h-[66px] py-[8px] px-[32px] border rounded-[64px]"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={handleNumber}
+                maxLength={11}
               />
             </div>
             <div className="flex space-x-4">
               <input
                 type="password"
-                placeholder="Confirm Password"
+                placeholder="Password"
                 className="w-full h-[66px] py-[8px] px-[32px] border rounded-[64px]"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <input
                 type="password"
-                placeholder="Retype Password"
+                placeholder="Confirm Password"
                 className="w-full h-[66px] py-[8px] px-[32px] border rounded-[64px]"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -98,6 +108,9 @@ export default function SignupPage() {
               <label>I agree to the <span className="font-semibold">terms of use</span></label>
             </div>
           </div>
+          {numberError &&  phone.length < 11 &&(
+              <p className="text-red-500 text-sm mt-1">{numberError}</p>
+            )}
 
           <div className='flex justify-between mt-10'>
             <p className="mt-2 text-center text-gray-500 text-[16px] font-medium">
@@ -106,7 +119,7 @@ export default function SignupPage() {
             <button 
                 onClick={handleSubmit}
                 type="submit" 
-                className="bg-[#1C1E4C] text-white text-center py-[15px] px-[24px] rounded-[40px]"
+                className="bg-[#1C1E4C] text-white text-center py-[15px] px-[24px] rounded-[40px] cursor-pointer"
                 disabled={registerMutation.isPending}
               >
                 {registerMutation.isPending ? 'Signing up...' : 'Sign up'}

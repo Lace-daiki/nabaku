@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { API_BASE_URL } from '@/lib/contants';
 
-export default function SetupPage4({ bankName, accountNumber, bank, onChange }) {
+export default function SetupPage4({ bankName, accountNumber,accountName, bank, onChange }) {
   const [banks, setBanks] = useState([]);
   const [accountNumberError, setAccountNumberError] = useState('');
 
@@ -59,10 +59,10 @@ export default function SetupPage4({ bankName, accountNumber, bank, onChange }) 
         <label>
           <input
             type="text"
-            name="bankName"
+            name="accountName"
             placeholder="Name of organization's account"
             className="w-full h-[66px] py-[8px] px-[32px] border border-[#8E92BC] rounded-[64px]"
-            value={bankName}
+            value={accountName}
             onChange={onChange}
           />
         </label>
@@ -87,8 +87,8 @@ export default function SetupPage4({ bankName, accountNumber, bank, onChange }) 
           </div>
           <label>
             <select
-              name="bank"
-              value={bank}
+              name="bankName"
+              value={bankName}
               onChange={handleBankChange}
               className="w-full h-[66px] py-[8px] px-[32px] border border-[#8E92BC] rounded-[64px]"
               required

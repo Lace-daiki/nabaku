@@ -4,9 +4,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { HomeIcon, ChartBarIcon, CogIcon, UsersIcon, DocumentIcon } from '@heroicons/react/24/outline';
+import { useLogoutMutation } from '@/hooks/auth/useAuthMutation';
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const logoutMutation = useLogoutMutation();
 
   const navItems = [
     { name: 'Overview', href: '/dashboard', icon: HomeIcon },
@@ -15,6 +17,10 @@ const Sidebar = () => {
     { name: 'Wallet', href: '/dashboard/wallet', icon: DocumentIcon },
     { name: 'Settings', href: '/dashboard/settings', icon: CogIcon },
   ];
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   return (
     <div className="hidden md:flex md:flex-shrink-0 ">
@@ -43,6 +49,13 @@ const Sidebar = () => {
               </Link>
             ))}
           </nav>
+          <button 
+            onClick={handleLogout}
+            disabled={logoutMutation.isPending}
+            className='w-[50%] text-[14px] bg-[#1C1E4C] text-white ml-15 px-5 py-2 rounded-[40px] cursor-pointer hover:bg-[#15173a] disabled:opacity-50'
+          >
+            {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+          </button>
         </div>
       </div>
     </div>

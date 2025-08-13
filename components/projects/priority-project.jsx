@@ -1,9 +1,15 @@
 
 import ProjectCard from '@/components/projects/ProjectCard';
 import { useProjects, useCreateProject, useDeleteProject } from '@/hooks/project/useProjectsQuery';
-import NewProjectModal from '@/components/projects/NewProjectModal';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXmark, faFilter, faFolderOpen, faPlus, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import ProjectDetailsContent from './ProjectDetailsContent';
 
 const PriorityProjects = () => {
+    const [selectedProject, setSelectedProject] = useState(null);
+    const router = useRouter();
 
     // Fetch projects with React Query
     const { data: projects = [], isLoading, isError, refetch } = useProjects();
@@ -11,24 +17,29 @@ const PriorityProjects = () => {
     const deleteProjectMutation = useDeleteProject();
 
     const handleCardClick = (project) => {
-        setSelectedProject(project);
+        router.push(`/projects/details/${project._id}`);
     };
 
     const handleBackToProjects = () => {
         setSelectedProject(null);
     };
 
-    const handleNewProjectClick = () => setIsModalOpen(true);
-    const handleCloseModal = () => {
-        setFormData({
-        title: '',
-        coverImage: null,
-        description: '',
-        mediaFiles: [],
-        targetAmount: ''
-        });
-        setIsModalOpen(false);
-    };
+    if (selectedProject) {
+        return (
+          <div className="flex-1 bg-[#F4F6FC] min-h-screen">
+            <div className="p-10">
+              <button
+                onClick={handleBackToProjects}
+                className="flex items-center text-[#2E3E5C] mb-6 hover:text-blue-600 transition-colors"
+              >
+                <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+                Back to Projects
+              </button>
+              <ProjectDetailsContent project={selectedProject} />
+            </div>
+          </div>
+        );
+      }
 
     return (
         <div className="w-full h-auto border border-gray-300 rounded-lg p-4 bg-white flex-col items-center shadow-md mt-5">

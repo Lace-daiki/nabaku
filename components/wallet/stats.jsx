@@ -1,6 +1,10 @@
 'use client';
 
-const Stats = () => {
+const Stats = ({ totalDonations, 
+    totalWithdrawals, 
+    totalActivity, 
+    donorCount,
+    withdrawalCount  }) => {
     return (
         <div className="w-[768px] h-[315px] border border-gray-300 rounded-lg p-6 bg-white shadow-md">
             <h2 className="text-[18px] font-semibold mb-6">Overview</h2>
@@ -20,10 +24,10 @@ const Stats = () => {
                         </svg>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">+N651,000</span>
+                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">₦ {totalActivity.toLocaleString()}</span>
                         <div className="flex items-center mt-2">
                             <span className="text-[14px] font-bold text-[#1C1E4C]">Last 7 days</span>
-                            <div className="w-[80px] h-[24px] ml-auto">
+                            {/* <div className="w-[80px] h-[24px] ml-auto">
                                 <svg viewBox="0 0 100 25" className="w-full h-full">
                                     <path
                                         d="M0 20 Q 20 20, 25 15 T 50 10 T 75 15 T 100 5"
@@ -32,7 +36,7 @@ const Stats = () => {
                                         strokeWidth="2"
                                     />
                                 </svg>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>
@@ -52,12 +56,12 @@ const Stats = () => {
                         </svg>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">N54.1M</span>
+                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">₦ {totalDonations.toLocaleString()}</span>
                         <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center">
-                                <span className="text-[14px] font-bold text-[#1C1E4C]">1.2k Donors</span>
+                                <span className="text-[14px] font-bold text-[#1C1E4C]">{donorCount} Donors</span>
                             </div>
-                            <span className="text-[14px] font-bold text-[#1C1E4C]">+12%</span>
+                            {/* <span className="text-[14px] font-bold text-[#1C1E4C]">+12%</span> */}
                         </div>
                     </div>
                 </div>
@@ -77,18 +81,16 @@ const Stats = () => {
                         </svg>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">N30.7M</span>
+                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">₦ {totalWithdrawals.toLocaleString()}</span>
                         <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center">
-                                <span className="text-[14px] font-bold text-[#1C1E4C]">17 Withdrawals</span>
+                                <span className="text-[14px] font-bold text-[#1C1E4C]">{withdrawalCount} Withdrawals</span>
                             </div>
-                            <span className="text-[14px] font-bold text-[#1C1E4C]">+8%</span>
+                            {/* <span className="text-[14px] font-bold text-[#1C1E4C]">+8%</span> */}
                         </div>
                     </div>
                 </div>
             </div>
-
-            
         </div>
     );
 };

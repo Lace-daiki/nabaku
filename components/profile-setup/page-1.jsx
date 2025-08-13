@@ -19,10 +19,10 @@ export default function SetupPage1(props) {
       <div className="space-y-8 w-[886px] h-[266px] bg-[#F3F3F3] rounded-[40px] flex flex-col justify-center p-[32px] gap-4">
         <input
           type="text"
-          name="organization_name"
+          name="name"
           placeholder="Registered name of organization"
           className="w-full h-[66px] py-[8px] px-[32px] border border-[#8E92BC] rounded-[64px]"
-          value={props.organization_name}
+          value={props.name}
           onChange={props.onChange}
           required
         />

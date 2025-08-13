@@ -11,8 +11,8 @@ const ReviewPage = ({ form, profile_imagePreview, cover_imagePreview, organizati
           <h2 className="text-2xl font-semibold text-[#1C1E4C]">Basic Information</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-gray-600">Organization Name</p>
-              <p className="font-medium">{form.organization_name}</p>
+              <p className="text-gray-600">Name</p>
+              <p className="font-medium">{form.name}</p>
             </div>
             <div>
               <p className="text-gray-600">Registration Number</p>
@@ -26,19 +26,19 @@ const ReviewPage = ({ form, profile_imagePreview, cover_imagePreview, organizati
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-gray-600">Street</p>
-              <p className="font-medium">{form.organization_address.street}</p>
+              <p className="font-medium">{form.street}</p>
             </div>
             <div>
               <p className="text-gray-600">City</p>
-              <p className="font-medium">{form.organization_address.city}</p>
+              <p className="font-medium">{form.city}</p>
             </div>
             <div>
               <p className="text-gray-600">State</p>
-              <p className="font-medium">{form.organization_address.state}</p>
+              <p className="font-medium">{form.state}</p>
             </div>
             <div>
               <p className="text-gray-600">Zip Code</p>
-              <p className="font-medium">{form.organization_address.zipCode}</p>
+              <p className="font-medium">{form.zipCode}</p>
             </div>
           </div>
         </section>
@@ -51,7 +51,7 @@ const ReviewPage = ({ form, profile_imagePreview, cover_imagePreview, organizati
                 <img src={organizationCertificatePreview} alt="Certificate Preview" className="w-32 h-20 object-cover rounded-lg" />
               </div>
             ) : (
-              <p className="font-medium">{form.organizationCertificate?.name || 'No file uploaded'}</p>
+              <p className="font-medium">{form.registration_certificate?.name || 'No file uploaded'}</p>
             )}
           </div>
         </section>
@@ -61,7 +61,7 @@ const ReviewPage = ({ form, profile_imagePreview, cover_imagePreview, organizati
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-gray-600">Bank Name</p>
-              <p className="font-medium">{form.bankName}</p>
+              <p className="font-medium">{form.accountName}</p>
             </div>
             <div>
               <p className="text-gray-600">Account Number</p>
@@ -69,7 +69,7 @@ const ReviewPage = ({ form, profile_imagePreview, cover_imagePreview, organizati
             </div>
             <div>
               <p className="text-gray-600">Bank</p>
-              <p className="font-medium">{form.bank}</p>
+              <p className="font-medium">{form.bankName}</p>
             </div>
           </div>
         </section>
@@ -104,7 +104,7 @@ const ReviewPage = ({ form, profile_imagePreview, cover_imagePreview, organizati
           <h2 className="text-2xl font-semibold text-[#1C1E4C]">Organization Overview</h2>
           <div>
             <p className="text-gray-600">Overview</p>
-            <p className="font-medium whitespace-pre-wrap">{form.overview}</p>
+            <p className="font-medium whitespace-pre-wrap">{form.description}</p>
           </div>
         </section>
         {/* Social Media */}

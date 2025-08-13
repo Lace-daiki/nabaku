@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { authService } from './auth/auth';
+import { authService } from '@/services/auth/auth';
 import { API_BASE_URL } from '@/lib/contants';
 
 export async function fetchWalletBalance() {
@@ -21,17 +21,26 @@ export async function fetchDonationGraphByYear(year) {
   if (!token) {
     throw new Error('No authentication token found');
   }
+  
   const res = await axios.get(`${API_BASE_URL}/donation/graph/year`, {
-    params: { month: 1, year },
+    params: { month:1, year },
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-  // Return array of totalAmount for each month (1-12)
-  if (res.data && Array.isArray(res.data.totalAmountByMonth)) {
-    // Ensure the array is sorted by month
-    const sorted = res.data.totalAmountByMonth.sort((a, b) => a.month - b.month);
-    return sorted.map((item) => item.totalAmount);
+
+  // Check if the response contains the expected data structure
+  if (res.data && res.data.dataByMonth && Array.isArray(res.data.dataByMonth)) {
+    // Map the data to extract donations and withdrawals for each month
+    const donations = res.data.dataByMonth.map(item => item.donations);
+    const withdrawals = res.data.dataByMonth.map(item => item.withdrawals);
+    
+    return { donations, withdrawals };
   }
-  return Array(12).fill(0);
-} 
+  
+  // Return default values if the data is not available
+  return {
+    donations: Array(12).fill(0),
+    withdrawals: Array(12).fill(0),
+  };
+}

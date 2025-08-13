@@ -54,28 +54,50 @@ export const authService = {
       localStorage.setItem(USER_KEY, JSON.stringify(data.data));
     }
 
+    if (data.data.activationToken) {
+      localStorage.setItem('activationToken', data.data.activationToken);
+    }
+
     return data;
   },
 
+  activateAccount: async () => {
+    // Retrieve the activation token from local storage
+    const token = localStorage.getItem('activationToken');
+    
+    if (!token) {
+      throw new Error('No activation token available');
+    }
+  
+    try {
+      const response = await fetch(`${API_BASE_URL}/authentication/activate/${token}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      const data = await parseResponse(response);
+      
+      // If activation is successful, store user data
+      if (data.success && data.data) {
+        localStorage.setItem(USER_KEY, JSON.stringify(data.data));
+      }
+  
+      return data;
+    } catch (error) {
+      console.error('Activation error:', error);
+      throw new Error(error.message || 'Activation failed');
+    }
+  },
+  
+
   logout: async () => {
     try {
-      // Get token before clearing storage
-      const token = localStorage.getItem(TOKEN_KEY);
       
       // Clear stored data
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
-      
-      // Call logout API if token exists
-      if (token) {
-        await fetch(`${API_BASE_URL}/authentication/logout`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-      }
       
       return true;
     } catch (error) {
@@ -117,37 +139,6 @@ export const authService = {
     };
   },
 
-  refreshToken: async () => {
-    const refreshToken = authService.getRefreshToken();
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/authentication/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      const data = await parseResponse(response);
-      
-      if (data.authorization?.token) {
-        localStorage.setItem(TOKEN_KEY, data.authorization.token);
-        if (data.authorization.refreshToken) {
-          localStorage.setItem(REFRESH_TOKEN_KEY, data.authorization.refreshToken);
-        }
-        return data.authorization.token;
-      }
-      
-      throw new Error('Token refresh failed');
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      throw error;
-    }
-  }
 };
 
 async function parseResponse(response) {

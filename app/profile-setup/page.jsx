@@ -1,15 +1,19 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import SetupPage1 from '@/components/profile-setup/page-1';
 import SetupPage2 from '@/components/profile-setup/page-2';
 import SetupPage3 from '@/components/profile-setup/page-3';
 import SetupPage4 from '@/components/profile-setup/page-4';
 import SetupPage5 from '@/components/profile-setup/page-5';
-import { toast } from 'react-toastify';
 import SetupPage6 from '@/components/profile-setup/page-6';
 import SetupPage7 from '@/components/profile-setup/page-7';
 import ReviewPage from '@/components/profile-setup/page-8';
+import { profileService } from '@/services/auth/profileService';
+import { authService } from '@/services/auth/auth';
+import { toast } from 'react-toastify';
+// import ProtectedRoute from '@/components/ProtectedRoute';
 
 const steps = [
   'Basic Information',
@@ -23,33 +27,41 @@ const steps = [
 ];
 
 export default function ProfileSetup() {
+  const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
+  const router = useRouter();
   const [form, setForm] = useState({
-    organization_name: '',
-    registration_number: '',
     confirm_registration_number: '',
-    organization_address: {
-      street: '',
-      city: '',
-      state: '',
-      zipCode: '',
-    },
-    dob: '',
-    bio: '',
+    // organization_details: {
+    description: '',
     profile_image: null,
-    cover_image: null, // Added cover picture state
-    preferences: '',
-    organizationCertificate: null,
+    cover_image: null,
+    // },
+    // address: {
+    street: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    // },
+    // cac_details: {
+    name: '',
+    registration_number: '',
+    registration_certificate: null,
+    // },
+    // bank_details: {
+    accountName: '',
     bankName: '',
     accountNumber: '',
-    bank: '',
-    overview: '', // Added overview field
+    // },
+    // contact_details: {
     phone: '',
     email: '',
     youtube: '',
     instagram: '',
     facebook: '',
     twitter: '',
+    // },
+    profile_step: 7,
   });
 
   const [profile_imagePreview, setProfile_imagePreview] = useState(null);
@@ -57,34 +69,33 @@ export default function ProfileSetup() {
   const [organizationCertificatePreview, setOrganizationCertificatePreview] = useState(null);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name in form.organization_address) {
+    const { name, value, files } = e.target;
+    if (files && files[0]) {
+      // Handle file uploads
       setForm((prev) => ({
         ...prev,
-        organization_address: {
-          ...prev.organization_address,
-          [name]: value,
-        },
+        [name]: files[0],
       }));
-    } else if (name === 'profile_image' && e.target.files[0]) {
-      setForm((prev) => ({ ...prev, profile_image: e.target.files[0] }));
-      setProfile_imagePreview(URL.createObjectURL(e.target.files[0]));
-    } else if (name === 'cover_image' && e.target.files[0]) {
-      setForm((prev) => ({ ...prev, cover_image: e.target.files[0] }));
-      setCover_imagePreview(URL.createObjectURL(e.target.files[0]));
-    } else if (name === 'organizationCertificate' && e.target.files[0]) {
-      setForm((prev) => ({ ...prev, organizationCertificate: e.target.files[0] }));
-      setOrganizationCertificatePreview(URL.createObjectURL(e.target.files[0]));
+      if (name === 'profile_image') {
+        setProfile_imagePreview(URL.createObjectURL(files[0]));
+      } else if (name === 'cover_image') {
+        setCover_imagePreview(URL.createObjectURL(files[0]));
+      } else if (name === 'registration_certificate') {
+        setOrganizationCertificatePreview(URL.createObjectURL(files[0]));
+      }
     } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      // Handle text inputs
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
   };
 
   const validateStep = (currentStep) => {
     switch (currentStep) {
-      case 0: // Basic Information
-        if (!form.organization_name || !form.registration_number || !form.confirm_registration_number) {
+      case 0:
+        if (!form.name || !form.registration_number || !form.confirm_registration_number) {
           toast.error('Please fill in all fields.');
           return false;
         }
@@ -93,24 +104,21 @@ export default function ProfileSetup() {
           return false;
         }
         return true;
-
-      case 1: // Contact Information
-        const { street, city, state, zipCode } = form.organization_address;
+      case 1:
+        const { street, city, state, zipCode } = form;
         if (!street || !city || !state || !zipCode) {
           toast.error('Please fill in all address fields.');
           return false;
         }
         return true;
-
-      case 2: // Organization Certificate
-        if (!form.organizationCertificate) {
+      case 2:
+        if (!form.registration_certificate) {
           toast.error('Please upload your organization certificate.');
           return false;
         }
         return true;
-
-      case 3: // Banking Info
-        if (!form.bankName || !form.accountNumber || !form.bank) {
+      case 3:
+        if (!form.accountName || !form.accountNumber) {
           toast.error('Please fill in all banking information fields.');
           return false;
         }
@@ -119,41 +127,149 @@ export default function ProfileSetup() {
           return false;
         }
         return true;
-
-      case 4: // Profile and Cover Picture
+      case 4:
         if (!form.profile_image || !form.cover_image) {
           toast.error('Please upload both profile and cover pictures.');
           return false;
         }
         return true;
-
-      case 5: // Overview
-        if (!form.overview || form.overview.trim().length < 10) {
+      case 5:
+        if (!form.description || form.description.trim().length < 10) {
           toast.error('Please provide an overview with at least 10 characters.');
           return false;
         }
         return true;
-
-      case 6: // Social Media
+      case 6:
         if (!form.phone || !form.email) {
           toast.error('Please provide at least phone and email contact information.');
           return false;
         }
         return true;
-
-      case 7: // Review
-        // No validation needed for review step
+      case 7:
         return true;
-
       default:
         return true;
     }
   };
 
-  const nextStep = () => {
-    if (!validateStep(step)) {
-      return;
+  const handleImageUpload = async (file) => {
+    try {
+      // Step 1: Get signed upload params from server
+      const sigRes = await fetch('/api/cloudinary-signature');
+      const { signature, timestamp, folder, cloudName, apiKey } = await sigRes.json();
+
+      // Step 2: Convert file to Base64 string
+      const arrayBuffer = await file.arrayBuffer();
+      const base64String = btoa(
+        new Uint8Array(arrayBuffer)
+          .reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+      const dataUri = `data:${file.type};base64,${base64String}`;
+
+      // Step 3: Upload directly to Cloudinary without FormData
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          file: dataUri,
+          api_key: apiKey,
+          timestamp,
+          signature,
+          folder
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Cloudinary upload failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
     }
+  };
+
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateStep(step)) return;
+    if (step === 7) {
+      setLoading(true);
+      try {
+        const profileImageUrl = form.profile_image ? await handleImageUpload(form.profile_image) : null;
+        const coverImageUrl = form.cover_image ? await handleImageUpload(form.cover_image) : null;
+        const registrationCertificateUrl = form.registration_certificate ? await handleImageUpload(form.registration_certificate) : null;
+
+
+        // Structure the data according to the API format
+        const profileData = {
+          organization_details: {
+            description: form.description,
+            profile_image: profileImageUrl,
+            cover_image: coverImageUrl
+          },
+          address: {
+            street: form.street,
+            city: form.city,
+            state: form.state,
+            zipCode: form.zipCode
+          },
+          cac_details: {
+            name: form.name,
+            registration_certificate: registrationCertificateUrl,
+            registration_number: form.registration_number
+          },
+          bank_details: {
+            bankName: form.bankName,
+            accountNumber: form.accountNumber,
+            accountName: form.accountName
+          },
+          contact_details: {
+            phone: form.phone,
+            email: form.email,
+            youtube: form.youtube || undefined,
+            facebook: form.facebook || undefined,
+            instagram: form.instagram || undefined,
+            twitter: form.twitter || undefined
+          },
+          profile_step: 7
+        };
+
+        // Remove undefined properties from contact_details
+        Object.keys(profileData.contact_details).forEach(key => {
+          if (profileData.contact_details[key] === undefined) {
+            delete profileData.contact_details[key];
+          }
+        });
+
+        const response = await profileService.updateProfile(profileData);
+        console.log(profileData);
+
+        if (response.success) {
+          toast.success('Profile submitted successfully!');
+          console.log('Submission response:', response);
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 2000);
+        } else {
+          toast.error(response.error || 'Submission failed. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error submitting:', error);
+        toast.error('Submission failed. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+
+
+  const nextStep = () => {
+    if (!validateStep(step)) return;
     setStep((s) => Math.min(s + 1, steps.length - 1));
   };
 
@@ -161,15 +277,8 @@ export default function ProfileSetup() {
     setStep((s) => Math.max(s - 1, 0));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!validateStep(step)) return;
-    toast.success('Profile setup complete!');
-  };
-
   return (
     <div className="flex h-screen items-center justify-center">
-      {/* Left Section - Signup Form */}
       <div className="border-1 rounded-[40px] m-4 p-8 w-[966px] h-[730px] flex flex-col justify-center">
         <div className="mb-10">
           <Image src="/nabaku.png" alt="Illustration" width={200} height={22} />
@@ -184,7 +293,7 @@ export default function ProfileSetup() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {step === 0 && (
             <SetupPage1
-              organization_name={form.organization_name}
+              name={form.name}
               registration_number={form.registration_number}
               confirm_registration_number={form.confirm_registration_number}
               onChange={handleChange}
@@ -192,25 +301,25 @@ export default function ProfileSetup() {
           )}
           {step === 1 && (
             <SetupPage2
-              street={form.organization_address.street}
-              city={form.organization_address.city}
-              state={form.organization_address.state}
-              zipCode={form.organization_address.zipCode}
+              street={form.street}
+              city={form.city}
+              state={form.state}
+              zipCode={form.zipCode}
               onChange={handleChange}
             />
           )}
           {step === 2 && (
             <SetupPage3
-              organizationCertificate={form.organizationCertificate}
+              registration_certificate={form.registration_certificate}
               organizationCertificatePreview={organizationCertificatePreview}
-              setOrganizationCertificate={(file) => setForm((prev) => ({ ...prev, organizationCertificate: file }))}
+              setOrganizationCertificate={(file) => setForm((prev) => ({ ...prev, registration_certificate: file }))}
             />
           )}
           {step === 3 && (
             <SetupPage4
+              accountName={form.accountName}
               bankName={form.bankName}
               accountNumber={form.accountNumber}
-              bank={form.bank}
               onChange={handleChange}
             />
           )}
@@ -225,7 +334,7 @@ export default function ProfileSetup() {
           )}
           {step === 5 && (
             <SetupPage6
-              overview={form.overview}
+              description={form.description}
               onChange={handleChange}
             />
           )}
@@ -267,7 +376,12 @@ export default function ProfileSetup() {
               </svg>
             </button>
             {step < steps.length - 1 ? (
-              <button type="button" onClick={nextStep} className="px-[32px] py-[16px] rounded-[60px] bg-[#202253] font-medium text-[14px] text-white flex items-center gap-2 cursor-pointer">
+              <button
+                type="button"
+                onClick={nextStep}
+                disabled={loading} // Disable button while loading
+                className="px-[32px] py-[16px] rounded-[60px] bg-[#202253] font-medium text-[14px] text-white flex items-center gap-2 cursor-pointer"
+              >
                 Continue
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -281,14 +395,17 @@ export default function ProfileSetup() {
                 </svg>
               </button>
             ) : (
-              <button type="submit" className="px-[32px] py-[16px] rounded-[60px] bg-[#202253] font-medium text-[14px] text-white flex items-center gap-2 cursor-pointer">
+              <button
+                type="submit"
+                disabled={loading} // Disable button while loading
+                className="px-[32px] py-[16px] rounded-[60px] bg-[#202253] font-medium text-[14px] text-white flex items-center gap-2 cursor-pointer"
+              >
                 Submit
               </button>
             )}
           </div>
         </form>
       </div>
-      {/* Right Section - Illustration */}
       <div className="border-1 rounded-[40px]">
         <div className="bg-[#8E92BC] rounded-[40px] p-8">
           <Image src="/login.png" alt="Illustration" width={400} height={746} />
@@ -297,3 +414,12 @@ export default function ProfileSetup() {
     </div>
   );
 }
+
+// Wrap the component with ProtectedRoute
+// export default function ProtectedProfileSetup() {
+//   return (
+//     <ProtectedRoute>
+//       <ProfileSetup />
+//     </ProtectedRoute>
+//   );
+// }

@@ -4,17 +4,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { HomeIcon, ChartBarIcon, CogIcon, UsersIcon, DocumentIcon } from '@heroicons/react/24/outline';
+import { useLogoutMutation } from '@/hooks/auth/useAuthMutation';
 
 const Side = () => {
   const pathname = usePathname();
+  const logoutMutation = useLogoutMutation();
 
   const navItems = [
     { name: 'Overview', href: '/admin', icon: HomeIcon },
     { name: 'Projects', href: '/admin/projects', icon: ChartBarIcon },
     { name: 'Organizations', href: '/admin/organizations', icon: DocumentIcon },
-    { name: 'Transactions', href: '/admin/transaction', icon: UsersIcon },
+    { name: 'Withdrawal Requests', href: '/admin/withdrawal_requests', icon: UsersIcon },
     { name: 'Settings', href: '/admin/settings', icon: CogIcon },
-  ];
+  ]; const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   return (
     <div className="hidden md:flex md:flex-shrink-0 ">
@@ -28,21 +32,26 @@ const Side = () => {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`group flex items-center px-2 py-2 text-[14px] font-medium rounded-[40px] ${
-                  pathname === item.href
+                className={`group flex items-center px-2 py-2 text-[14px] font-medium rounded-[40px] ${pathname === item.href
                     ? 'bg-[#1C1E4C] text-white'
                     : 'text-[#8E92BC] hover:bg-[#1C1E4C] hover:text-white'
-                }`}
+                  }`}
               >
                 <item.icon
-                  className={`mr-3 flex-shrink-0 h-6 w-6 ${
-                    pathname === item.href ? 'text-white' : 'text-[#8E92BC] group-hover:text-white'
-                  }`}
+                  className={`mr-3 flex-shrink-0 h-6 w-6 ${pathname === item.href ? 'text-white' : 'text-[#8E92BC] group-hover:text-white'
+                    }`}
                 />
                 {item.name}
               </Link>
             ))}
           </nav>
+          <button
+            onClick={handleLogout}
+            disabled={logoutMutation.isPending}
+            className='w-[50%] text-[14px] bg-[#1C1E4C] text-white ml-15 px-5 py-2 rounded-[40px] cursor-pointer hover:bg-[#15173a] disabled:opacity-50'
+          >
+            {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+          </button>
         </div>
       </div>
     </div>

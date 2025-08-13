@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import NextImage from 'next/image';
 import { toast } from 'react-toastify';
 
-export default function SetupPage3({ organizationCertificate, setOrganizationCertificate }) {
+export default function SetupPage3({ registration_certificate, setOrganizationCertificate }) {
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -38,7 +38,7 @@ export default function SetupPage3({ organizationCertificate, setOrganizationCer
               ref={fileInputRef}
               onChange={handleFileChange}
               style={{ display: 'none' }} // Hide the input
-              name="organizationCertificate"
+              name="registration_certificate"
             />
             <button
               className="w-[274px] h-[56px] px-[32px] py-[16px] bg-[#1C1E4C] text-white text-[14px] font-medium rounded-[60px] gap-3 cursor-pointer"
