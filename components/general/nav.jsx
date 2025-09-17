@@ -8,7 +8,7 @@ const Nav = ({ user }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className='w-full h-[74px] bg-[#12175B] border-b border-white flex items-center justify-between px-8'>
+    <nav className='w-full h-[74px] bg-[#1C1E4C] flex items-center justify-between px-8'>
       {/* Left: Logo */}
       <div className="flex items-center gap-2">
         <Link href="/">
@@ -25,7 +25,7 @@ const Nav = ({ user }) => {
       <div className="hidden md:flex gap-8 text-white text-[18px] font-normal">
           <Link href="/about-us" aria-label="About Us">About Us</Link>
           <Link href="/contact"  aria-label="Contact">Contact</Link>
-          <Link href="/#sustainability" aria-label="Search">Search</Link>
+          <Link href="/search" aria-label="Search">Search</Link>
         </div>
       {/* Right: Buttons */}
       <div className="flex gap-3 items-center">

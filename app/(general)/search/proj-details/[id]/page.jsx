@@ -1,13 +1,10 @@
 'use client';
-
 import { useState, useEffect } from 'react';
-import { profileService } from '@/services/auth/profileService';
-import { toast } from 'react-toastify';
 import Link from 'next/link';
-import NewActivityModal from '@/components/settings/activity/NewActivityModal';
+import { toast } from 'react-toastify';
 
-export default function SettingsPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function ProjDetails(params) {
+  const { id } = params;
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
     name: '',
@@ -22,18 +19,7 @@ export default function SettingsPage() {
     twitter: '',
   });
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    cover_image: '',
-    profile_image: '',
-    phone: '',
-    email: '',
-    youtube: '',
-    instagram: '',
-    facebook: '',
-    twitter: '',
-  });
+  const [formData, setFormData] = useState({ ...profile });
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -44,16 +30,16 @@ export default function SettingsPage() {
 
         // if (result.success) {
         const profileData = {
-          name: String(result.data.data.name || ''),
-          description: String(result.data.data.description || ''),
-          cover_image: String(result.data.data.cover_image || ''),
-          profile_image: String(result.data.data.profile_image || ''),
-          phone: String(result.data.data.contact?.phone || ''),
-          email: String(result.data.data.contact?.email || ''),
-          youtube: String(result.data.data.contact?.youtube || ''),
-          instagram: String(result.data.data.contact?.instagram || ''),
-          facebook: String(result.data.data.contact?.facebook || ''),
-          twitter: String(result.data.data.contact?.twitter || ''),
+          name: result.data.data.name || '',
+          description: result.data.data.description || '',
+          cover_image: result.data.data.cover_image || '',
+          profile_image: result.data.data.profile_image || '',
+          phone: result.data.data.contact?.phone || '',
+          email: result.data.data.contact?.email || '',
+          youtube: result.data.data.contact?.youtube || '',
+          instagram: result.data.data.contact?.instagram || '',
+          facebook: result.data.data.contact?.facebook || '',
+          twitter: result.data.data.contact?.twitter || '',
         };
         setProfile(profileData);
         setFormData(profileData);
@@ -69,11 +55,6 @@ export default function SettingsPage() {
 
     fetchProfileData();
   }, []);
-
-  const handleActivityClick = () => setIsModalOpen(true);
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -138,15 +119,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-10">
-      <h1 className="text-2xl font-semibold mb-6">Profile Settings</h1>
-      <p className="text-sm text-gray-500 mb-6">
-        Manage how your organization appears to the public.
-      </p>
-
+    <div className="w-full min-h-screen bg-gray-50">
       {/* Cover and Logo */}
       <div className="relative mb-16">
-        <div className="w-full h-48 bg-gray-200 rounded-lg overflow-hidden">
+        <div className="w-full h-[600px] bg-gray-200 rounded-[40px] overflow-hidden">
           {formData.cover_image ? (
             <img
               src={formData.cover_image}
@@ -161,7 +137,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="absolute bottom-[-32px] left-6">
-          <div className="w-20 h-20 rounded-lg border-4 border-white bg-white overflow-hidden">
+          <div className="w-[300px] h-[300px] rounded-[20px] border-[8px] border-white bg-white overflow-hidden">
             {formData.profile_image ? (
               <img
                 src={formData.profile_image}
@@ -180,6 +156,9 @@ export default function SettingsPage() {
       {/* Organization Name */}
       <div className="bg-white p-6 rounded-lg shadow mb-8">
         <div className="flex justify-between items-start mb-4">
+          <h1 className="text-3xl font-bold text-green-600">
+            Project Details - {id}
+          </h1>
           <div>
             <h2 className="text-lg font-semibold">Organization Name</h2>
             <p className="text-sm text-gray-500">
@@ -291,8 +270,11 @@ export default function SettingsPage() {
         )}
       </div>
 
+
+      <Link href="/profile-setup" className="text-[#1C1E4C]">Sign up</Link>
+
       {/* Social Links */}
-      <div className="bg-white p-6 rounded-lg shadow mb-4">
+      <div className="bg-white p-6 rounded-lg shadow">
         <div className="flex justify-between items-start mb-4">
           <div>
             <h2 className="text-lg font-semibold">Social Media Links</h2>
@@ -410,14 +392,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-      <div className='flex items-center gap-10'>
-        <Link href="/profile-setup" className="text-white bg-[#1C1E4C] px-[20px] py-[10px] border rounded-full">Set Profile</Link>
-        <button className="text-white bg-[#1C1E4C] px-[20px] py-[10px] rounded-full cursor-pointer" onClick={handleActivityClick}>Add Activity</button>
-      </div>
-      <NewActivityModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
     </div>
   );
 }

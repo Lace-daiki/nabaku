@@ -4,7 +4,7 @@ import { FiSearch } from 'react-icons/fi';
 
 export default function ImageOverlay() {
   return (
-    <div className="w-full h-[734px] bg-[#12175B] text-white p-8 flex relative">
+    <div className="w-full h-[734px] bg-[#1C1E4C] text-white p-8 flex relative">
       <div className='w-[1360px] h-[346px] flex flex-col justify-evenly mt-6'>
         <div className='w-full h-full text-[100px] text-white leading-none mt-10'>
           <p>EMPOWERING</p>

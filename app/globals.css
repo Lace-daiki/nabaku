@@ -1,2 +1,6 @@
 @import "tailwindcss";
+/* slick-carousel css */
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
+
 
