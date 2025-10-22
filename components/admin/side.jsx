@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, ChartBarIcon, CogIcon, UsersIcon, DocumentIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, ChartBarIcon, UsersIcon, WalletIcon,  } from '@heroicons/react/24/outline';
 import { useLogoutMutation } from '@/hooks/auth/useAuthMutation';
 
 const Side = () => {
@@ -13,9 +13,8 @@ const Side = () => {
   const navItems = [
     { name: 'Overview', href: '/admin', icon: HomeIcon },
     { name: 'Projects', href: '/admin/projects', icon: ChartBarIcon },
-    { name: 'Organizations', href: '/admin/organizations', icon: DocumentIcon },
-    { name: 'Withdrawal Requests', href: '/admin/withdrawal_requests', icon: UsersIcon },
-    { name: 'Settings', href: '/admin/settings', icon: CogIcon },
+    { name: 'Organizations', href: '/admin/organizations', icon: UsersIcon },
+    { name: 'Withdrawal Requests', href: '/admin/withdrawal_requests', icon: WalletIcon },
   ]; const handleLogout = () => {
     logoutMutation.mutate();
   };

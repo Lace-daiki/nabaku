@@ -149,7 +149,7 @@ export default function Projects() {
         <div className="flex items-center space-x-4">
           <div className="relative flex items-center">
             <SearchBar />
-            <button 
+            {/* <button 
               onClick={() => setShowFilters(!showFilters)}
               className={`ml-2 p-2 rounded-lg flex items-center gap-1 ${
                 Object.values(filters).some(Boolean) 
@@ -161,7 +161,7 @@ export default function Projects() {
               {Object.values(filters).some(Boolean) && (
                 <span className="text-xs font-medium">Filtered</span>
               )}
-            </button>
+            </button> */}
           </div>
           
           <button 
@@ -201,12 +201,6 @@ export default function Projects() {
             >
               <FontAwesomeIcon icon={faPlus} />
               Create Your First Project
-            </button>
-            <button 
-              className="border border-gray-300 text-gray-700 rounded-full py-3 px-6 hover:bg-gray-50 transition-colors"
-              onClick={() => window.open('https://docs.example.com/projects', '_blank')}
-            >
-              Learn More About Projects
             </button>
           </div>
         </div>

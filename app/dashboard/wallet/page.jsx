@@ -1,203 +1,254 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import Stats from '@/components/wallet/stats';
 import { CashflowChart } from "@/components/wallet/cash-chart";
 import RecentWithdrawals from '@/components/wallet/recent-withdrawals';
-import { fetchWalletBalance, fetchDonationGraphByYear } from '@/services/wallet/wallet';
+import WalletActivity from '@/components/wallet/activites';
+import { fetchWalletData as fetchWalletServiceData, fetchDonationGraphByYear, fetchOrganizationOverview } from '@/services/wallet/wallet';
 import { fetchBankDetails, processWithdrawal } from '@/services/wallet/withdrawals/withdrawals';
 
 const currentYear = new Date().getFullYear();
 
 const fetchWalletData = async () => {
-  const balance = await fetchWalletBalance();
+  const walletData = await fetchWalletServiceData();
+  
+  // Assuming walletData includes real 'activity' array with 'type' field (e.g., 'donation', 'withdrawal').
+  // If not, extend the service to fetch it separately.
+  const activity = walletData.activity || []; // Real data from API; fallback to empty if missing
+  
+  // Derive overview from real data if API doesn't provide it directly.
+  // Replace with real API response if available.
   return {
-    balance,
-    overview: {
-      activity: 651000,
-      income: 54100000,
-      donors: 1200,
-      spending: 30700000,
-      withdrawals: 17,
-    },
-    // cashflow will be set below
-    activity: [
-      { id: 1, date: 'Mar 30', status: 'Processing', amount: 600000 },
-      { id: 2, date: 'Mar 28', status: 'Deposited', amount: 600000 },
-      { id: 3, date: 'Mar 27', status: 'Deposited', amount: 600000 },
-    ],
+    balance: walletData.balance || 0,
+    lastUpdated: walletData.updatedAt,
+    activity, // Ensure each item has 'type', 'date', 'status', 'amount' from API
   };
 };
 
 export default function WalletPage() {
-  const { data, isLoading } = useQuery(['wallet'], fetchWalletData);
-  const {
-    data: cashflowData,
-    isLoading: isCashflowLoading
-  } = useQuery(
-    ['donation-graph', currentYear],
-    () => fetchDonationGraphByYear(currentYear),
-    {
-      select: (data) => {
-        // Check if data and data.dataByMonth are defined
-        if (data && data.dataByMonth) {
-          const donations = data.dataByMonth.map(item => item.donations).reduce((acc, curr) => acc + curr, 0) || 0;
-          const withdrawals = data.dataByMonth.map(item => item.withdrawals).reduce((acc, curr) => acc + curr, 0) || 0;
-          const activity = donations + withdrawals; // Corrected activity calculation
-          return {
-            donations,
-            withdrawals,
-            activity
-          };
-        }
-        // Return default values if data is not available
-        return {
-          donations: 0,
-          withdrawals: 0,
-          activity: 0
-        };
-      }
-    }
-  );
+  const queryClient = useQueryClient();
+  const { data: walletData, isLoading: isWalletLoading, error: walletError } = useQuery({
+    queryKey: ['wallet'],
+    queryFn: fetchWalletData,
+  });
+  const { data: overview, isLoading: isOverviewLoading, error: overviewError } = useQuery({
+    queryKey: ['org-overview'],
+    queryFn: fetchOrganizationOverview,
+  });
+
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const startDate = `${selectedYear}-01-01`;
+  const endDate = `${selectedYear}-12-31`;
+
+  const { data: cashflowData, isLoading: isCashflowLoading, error: cashflowError } = useQuery({
+    queryKey: ['donation-graph', selectedYear],
+    queryFn: () => fetchDonationGraphByYear(startDate, endDate),
+    enabled: !!selectedYear, // Only fetch if year is set
+  });
 
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [amount, setAmount] = useState('');
   const [bankId, setBankId] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  // Fetch bank details when modal opens
+
+  // Fetch bank details when modal opens (only if not already set)
   useEffect(() => {
     const getBankDetails = async () => {
-      if (showWithdrawModal) {
+      if (showWithdrawModal && !bankId) {
         try {
           const response = await fetchBankDetails();
-          if (response.status === 'success') {
+          if (response?.success && response?.data?.id) {
             setBankId(response.data.id);
+          } else {
+            console.error('No bank details found');
           }
         } catch (error) {
           console.error('Failed to fetch bank details:', error);
+          // Optionally show a toast/error UI here
         }
       }
     };
     getBankDetails();
-  }, [showWithdrawModal]); // Ensure this effect runs when showWithdrawModal changes
+  }, [showWithdrawModal, bankId]);
 
-  if (isLoading || isCashflowLoading) return <div className="p-8">Loading wallet...</div>;
+  // Combined loading state
+  const isLoading = isWalletLoading || isCashflowLoading || isOverviewLoading;
+  const hasError = walletError || overviewError || cashflowError;
 
-  // Calculate donor count (count of donation transactions)
-  const donorCount = data?.activity?.filter(item => item.type === 'donation').length || 0;
+  if (isLoading) return <div className="p-8">Loading wallet...</div>;
+  if (hasError) return <div className="p-8 text-red-500">Error loading wallet data. Please try again.</div>;
 
-  // Calculate withdrawal count
-  const withdrawalCount = data?.activity?.filter(item => item.type === 'withdrawal').length || 0;
-
-  
+  // Use overview for counts (primary source); fallback to activity filter if needed
+  const donorCount = overview?.income?.numberOfDonors ?? (walletData?.activity?.filter(item => item.type === 'donation').length || 0);
+  const withdrawalCount = overview?.spending?.numberOfWithdrawals ?? (walletData?.activity?.filter(item => item.type === 'withdrawal').length || 0);
 
   // Handle withdrawal submission
   const handleWithdraw = async () => {
-    if (!withdrawAmount || !bankId) return;
+    if (!amount || !bankId) {
+      alert('Please ensure amount and bank details are set.');
+      return;
+    }
+    const withdrawAmount = Number(amount);
+    if (withdrawAmount <= 0) {
+      alert('Please enter a valid withdrawal amount greater than 0.');
+      return;
+    }
+    if (withdrawAmount > (walletData?.balance || 0)) {
+      alert('Withdrawal amount exceeds available balance.');
+      return;
+    }
 
     setIsProcessing(true);
     try {
       const response = await processWithdrawal(withdrawAmount, bankId);
-      if (response.status === 'success') {
-        alert('Withdrawal successful!');
+      if (response?.success) {
+        alert(response?.message || 'Withdrawal successful!');
         setShowWithdrawModal(false);
-        // Optionally refetch wallet data here
+        setAmount(''); // Reset form
+        // Refetch data to update UI
+        queryClient.invalidateQueries({ queryKey: ['wallet'] });
+        queryClient.invalidateQueries({ queryKey: ['org-overview'] });
+        queryClient.invalidateQueries({ queryKey: ['recentWithdrawals'] });
       } else {
-        alert(`Withdrawal failed: ${response.message}`);
+        alert(`Withdrawal failed: ${response?.message || 'Unknown error'}`);
       }
     } catch (error) {
-      alert('An error occurred during withdrawal');
+      const apiMessage =
+        error?.details?.message ||
+        error?.details?.error ||
+        error?.message ||
+        'An error occurred during withdrawal';
+      alert(apiMessage);
       console.error('Withdrawal error:', error);
     } finally {
       setIsProcessing(false);
     }
   };
 
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(value) || 0);
+  };
 
   return (
-    <div className="flex justify-evenly">
-      {/* Top Overview Section */}
-      <div className="flex flex-col gap-4">
+    <div className="flex flex-col lg:flex-row justify-between gap-8 p-4 lg:p-8">
+      {/* Left Column: Stats, Chart, Recent Withdrawals */}
+      <div className="w-full flex flex-col gap-4 flex-1 lg:max-w-4xl">
         <Stats
-          totalDonations={cashflowData.donations}
-          totalWithdrawals={cashflowData.withdrawals}
-          totalActivity={cashflowData.activity}
+          totalDonations={overview?.income?.amount ?? 0}
+          totalWithdrawals={overview?.spending?.amount ?? 0}
+          totalActivity={overview?.activity?.amount ?? 0}
           donorCount={donorCount}
           withdrawalCount={withdrawalCount}
+          activityPeriod={overview?.activity?.period || 'Last 7 days'}
         />
 
-        {/* Cashflow Chart (API version) */}
-        <div className="w-[768px] h-[386px] bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="text-lg font-semibold mb-2">Cashflow</h3>
-          <div className=" w-full h-[235px] bg-gray-100 rounded-lg flex items-center">
-            {/* Chart with API data */}
-            <div className="w-full h-full">
+        {/* Cashflow Chart */}
+        <div className="w-full max-w-4xl bg-white p-6 rounded-lg shadow-sm">
+          <div className="w-full h-[245px] bg-gray-100 rounded-lg flex items-center justify-center">
+
+            <div className="w-full h-full p-4">
               <CashflowChart
                 donations={cashflowData?.donations || Array(12).fill(0)}
                 withdrawals={cashflowData?.withdrawals || Array(12).fill(0)}
+                selectedYear={selectedYear}
+                onYearChange={(y) => setSelectedYear(y)}
               />
             </div>
           </div>
-          <div className="text-sm text-gray-500 mt-2 ">Last update: Dec 31, 2024</div>
+          <div className="text-sm text-gray-500 mt-2 text-center">
+            Last update: {walletData?.lastUpdated 
+              ? new Date(walletData.lastUpdated).toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
+              : 'N/A'
+            }
+          </div>
         </div>
 
         {/* Recent Withdrawals */}
         <RecentWithdrawals />
       </div>
 
-      <div className='relative flex flex-col gap-4'>
-        <div className="w-[372px] h-[180px] col-span-1 bg-white p-4 rounded-lg shadow-sm space-y-2">
-          <p className="text-[18px] font-bold text-[#1C1E53]">Current Balance</p>
-          <h2 className="text-[32px] text-[#1C1E53] font-medium">
-            ₦ {typeof data.balance === 'number' ? data.balance.toLocaleString() : '0.00'}
-          </h2>
+      {/* Right Column: Balance and Activity */}
+      <div className="flex flex-col gap-4 lg:w-[372px] lg:flex-shrink-0">
+        <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
+          <div className="space-y-1">
+            <p className="text-sm text-gray-500">Available Balance</p>
+            <h2 className="text-3xl font-bold text-[#1C1E53]">
+              {formatCurrency(walletData?.balance)}
+            </h2>
+          </div>
           <button
-            className="w-full mt-2 bg-[#1C1E4C] px-[24px] py-[15px] text-white rounded-[40px] text-[14px] font-normal cursor-pointer"
+            className="w-full bg-[#1C1E4C] hover:bg-[#2D2A6E] transition-colors px-6 py-3 text-white rounded-full text-sm font-medium disabled:opacity-50"
             onClick={() => setShowWithdrawModal(true)}
+            disabled={!walletData?.balance || walletData.balance <= 0}
+            aria-label="Withdraw funds from wallet"
           >
-            Withdraw
+            Withdraw Funds
           </button>
         </div>
-        {/* Activity Section */}
         
+        {/* Activity Section */}
+        <WalletActivity />
       </div>
 
       {/* Withdraw Modal */}
       {showWithdrawModal && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50 p-4">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Withdraw Funds</h2>
               <button
                 onClick={() => setShowWithdrawModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+                aria-label="Close modal"
               >
                 &times;
               </button>
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">Amount</label>
+              <label className="block text-gray-700 font-medium mb-2">Amount (NGN)</label>
               <input
                 type="number"
                 min="1"
-                value={withdrawAmount}
-                onChange={e => setWithdrawAmount(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:border-blue-500 focus:outline-none"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="Enter amount to withdraw"
+                aria-label="Withdrawal amount"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Available: {formatCurrency(walletData?.balance)}
+              </p>
             </div>
             <div className="flex justify-end gap-2">
               <button
-                onClick={() => setShowWithdrawModal(false)}
-                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                onClick={() => {
+                  setShowWithdrawModal(false);
+                  setAmount('');
+                }}
+                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+                disabled={isProcessing}
               >
                 Cancel
               </button>
               <button
                 onClick={handleWithdraw}
-                disabled={isProcessing}
-                className={`px-4 py-2 rounded ${isProcessing ? 'bg-gray-400' : 'bg-[#1C1E4C]'} text-white hover:bg-[#23255a]`}
+                disabled={isProcessing || !bankId}
+                className="px-4 py-2 rounded bg-[#1C1E4C] text-white hover:bg-[#2D2A6E] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                aria-label="Process withdrawal"
               >
                 {isProcessing ? 'Processing...' : 'Withdraw'}
               </button>

@@ -15,9 +15,9 @@ export default function ImageOverlay() {
           <p className='w-[1360px]'>THROUGH DONATIONS</p>
         </div>
         
-        <div className="w-[729px] ml-15 mt-6">
+        <div className="w-[729px] mt-12">
           <p className=' text-[18px] font-normal'>From community centers to mission trips, we translate faith into impactful <br /> transformations</p>
-          <div className="relative mt-18">
+          {/* <div className="relative mt-18">
             <input
               type="text"
               placeholder="Find fundraisers by name of organizations, project, or a person’s name"
@@ -26,7 +26,7 @@ export default function ImageOverlay() {
             <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">
               <FiSearch size={24} />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
       <div className='w-[875px] h-[626px] absolute right-0'>

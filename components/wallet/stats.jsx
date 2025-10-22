@@ -4,13 +4,14 @@ const Stats = ({ totalDonations,
     totalWithdrawals, 
     totalActivity, 
     donorCount,
-    withdrawalCount  }) => {
+    withdrawalCount,
+    activityPeriod = 'Last 7 days'  }) => {
     return (
-        <div className="w-[768px] h-[315px] border border-gray-300 rounded-lg p-6 bg-white shadow-md">
+        <div className="w-[898px] h-[315px] border border-gray-300 rounded-lg p-6 bg-white shadow-md">
             <h2 className="text-[18px] font-semibold mb-6">Overview</h2>
-            <div className='flex gap-4'>
+            <div className='ml-7 flex items-center gap-9'>
                 {/* Activity Card */}
-                <div className="w-[232px] h-[198px] bg-[#BAC8FF] rounded-lg p-[20px]">
+                <div className="w-[238px] h-[200px] bg-[#BAC8FF] rounded-lg p-[20px]">
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-[14px] text-[#1C1E4C]">Activity</span>
                         <svg
@@ -24,9 +25,9 @@ const Stats = ({ totalDonations,
                         </svg>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">₦ {totalActivity.toLocaleString()}</span>
+                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">₦ {Number(totalActivity || 0).toLocaleString()}</span>
                         <div className="flex items-center mt-2">
-                            <span className="text-[14px] font-bold text-[#1C1E4C]">Last 7 days</span>
+                            <span className="text-[14px] font-bold text-[#1C1E4C]">{activityPeriod}</span>
                             {/* <div className="w-[80px] h-[24px] ml-auto">
                                 <svg viewBox="0 0 100 25" className="w-full h-full">
                                     <path
@@ -42,7 +43,7 @@ const Stats = ({ totalDonations,
                 </div>
 
                 {/* Income Card */}
-                <div className="w-[232px] h-[198px] bg-[#BDFED0] rounded-lg p-4">
+                <div className="w-[238px] h-[200px] bg-[#BDFED0] rounded-lg p-4">
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-[14px] text-[#1C1E4C]">Income</span>
                         <svg
@@ -56,10 +57,10 @@ const Stats = ({ totalDonations,
                         </svg>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">₦ {totalDonations.toLocaleString()}</span>
+                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">₦ {Number(totalDonations || 0).toLocaleString()}</span>
                         <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center">
-                                <span className="text-[14px] font-bold text-[#1C1E4C]">{donorCount} Donors</span>
+                                <span className="text-[14px] font-bold text-[#1C1E4C]">{Number(donorCount || 0)} Donors</span>
                             </div>
                             {/* <span className="text-[14px] font-bold text-[#1C1E4C]">+12%</span> */}
                         </div>
@@ -67,7 +68,7 @@ const Stats = ({ totalDonations,
                 </div>
 
                 {/* Spending Card */}
-                <div className="w-[232px] h-[198px] bg-[#FF344566] rounded-lg p-4">
+                <div className="w-[238px] h-[200px] bg-[#FF344566] rounded-lg p-4">
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-[14px] text-[#1C1E4C]">Spending</span>
                         <svg
@@ -81,10 +82,10 @@ const Stats = ({ totalDonations,
                         </svg>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">₦ {totalWithdrawals.toLocaleString()}</span>
+                        <span className="text-[32px] font-medium text-[#1C1E4C] mb-8">₦ {Number(totalWithdrawals || 0).toLocaleString()}</span>
                         <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center">
-                                <span className="text-[14px] font-bold text-[#1C1E4C]">{withdrawalCount} Withdrawals</span>
+                                <span className="text-[14px] font-bold text-[#1C1E4C]">{Number(withdrawalCount || 0)} Withdrawals</span>
                             </div>
                             {/* <span className="text-[14px] font-bold text-[#1C1E4C]">+8%</span> */}
                         </div>

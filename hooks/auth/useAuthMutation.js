@@ -10,8 +10,14 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: (credentials) => authService.login(credentials),
     onSuccess: (data) => {
-      login(data.user); // Update auth context
-      router.push('/dashboard');
+      // API returns: { success, message, data: { ...user }, authorization: { token, expiresIn } }
+      const user = data?.data;
+      console.log('user', user);
+      
+      login(user); // Update auth context with the user object saved by the service
+      const isAdmin = user?.isAdmin === true || user?.role === 'admin';
+      router.push(isAdmin ? '/admin' : '/dashboard');
+      console.log('isAdmin', isAdmin);
     },
     onError: (error) => {
       console.error('Login error:', error);

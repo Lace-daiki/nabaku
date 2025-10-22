@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, ChartBarIcon, CogIcon, UsersIcon, DocumentIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, ChartBarIcon, CogIcon, UsersIcon, WalletIcon } from '@heroicons/react/24/outline';
 import { useLogoutMutation } from '@/hooks/auth/useAuthMutation';
 
 const Sidebar = () => {
@@ -14,7 +14,7 @@ const Sidebar = () => {
     { name: 'Overview', href: '/dashboard', icon: HomeIcon },
     { name: 'Projects', href: '/dashboard/projects', icon: ChartBarIcon },
     { name: 'Transactions', href: '/dashboard/transaction', icon: UsersIcon },
-    { name: 'Wallet', href: '/dashboard/wallet', icon: DocumentIcon },
+    { name: 'Wallet', href: '/dashboard/wallet', icon: WalletIcon },
     { name: 'Settings', href: '/dashboard/settings', icon: CogIcon },
   ];
 

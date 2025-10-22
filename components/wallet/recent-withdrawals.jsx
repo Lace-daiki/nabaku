@@ -1,53 +1,99 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { FaSearch } from 'react-icons/fa';
 import { FiFilter } from 'react-icons/fi';
 import { AiOutlineEye } from 'react-icons/ai';
+import { getWithdrawals } from '@/services/wallet/withdrawals/withdrawals';
 
-const withdrawals = [
-  {
-    id: 1,
-    name: 'Simon Itodo',
-    amount: '-₦500,000',
-    date: '21/02/2024',
-    status: 'Successful',
-    avatar: '/avatars/avatar1.png',
-  },
-  {
-    id: 2,
-    name: 'Simon Itodo',
-    amount: '-₦500,000',
-    date: '21/02/2024',
-    status: 'Successful',
-    avatar: '/avatars/avatar1.png',
-  },
-  {
-    id: 3,
-    name: 'Victor Ukeh',
-    amount: '-₦500,000',
-    date: '21/02/2024',
-    status: 'Successful',
-    avatar: '/avatars/avatar2.png',
-  },
-  {
-    id: 4,
-    name: 'Susan Owoicho',
-    amount: '-₦500,000',
-    date: '21/02/2024',
-    status: 'Successful',
-    avatar: '/avatars/avatar3.png',
-  },
-  {
-    id: 5,
-    name: 'Susan Owoicho',
-    amount: '-₦500,000',
-    date: '21/02/2024',
-    status: 'Successful',
-    avatar: '/avatars/avatar3.png',
-  },
-];
+const fetchRecentWithdrawals = async () => {
+  try {
+    // Fetching with pending status as per the request, limited to 5 for recent view.
+    const response = await getWithdrawals();
+    let items = [];
+    if (Array.isArray(response)) {
+      items = response;
+    } else if (Array.isArray(response?.data)) {
+      items = response.data;
+    } else if (Array.isArray(response?.data?.data)) {
+      items = response.data.data;
+    } else if (response?.success && Array.isArray(response?.data)) {
+      items = response.data;
+    }
+
+    const normalizeStatus = (s) => {
+      const v = (s || '').toLowerCase();
+      if (['completed', 'success', 'approved', 'paid'].includes(v)) return 'completed';
+      if (['pending', 'processing', 'in_progress', 'in-progress'].includes(v)) return 'in-progress';
+      if (['cancelled', 'canceled', 'failed', 'rejected', 'declined'].includes(v)) return 'cancelled';
+      return 'unknown';
+    };
+
+    const statusLabel = (norm) => {
+      if (norm === 'in-progress') return 'In-Progress';
+      if (norm === 'completed') return 'Completed';
+      if (norm === 'cancelled') return 'Cancelled';
+      return 'Unknown';
+    };
+
+    const mapped = (items || [])
+      .slice()
+      .sort((a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0))
+      .slice(0, 5)
+      .map((w) => {
+        const norm = normalizeStatus(w?.status);
+        return {
+          id: w?._id || w?.id,
+          name: w?.fullname || w?.email || w?.user?.fullname || w?.user?.email || 'Unknown',
+          amount: `-₦${Number(w?.amount || 0).toLocaleString()}`,
+          date: w?.createdAt ? new Date(w.createdAt).toLocaleDateString('en-GB') : '',
+          status: norm,
+          statusLabel: statusLabel(norm),
+          avatar: '/avatars/avatar-placeholder.png', // Using a generic placeholder as API doesn't provide one
+        };
+      });
+
+    return mapped;
+  } catch (error) {
+    console.error("Failed to fetch recent withdrawals", error);
+    throw error; // re-throw error for react-query to handle
+  }
+};
 
 export default function RecentWithdrawals() {
+  const { data: withdrawals, isLoading, isError } = useQuery({
+    queryKey: ['recentWithdrawals'],
+    queryFn: fetchRecentWithdrawals,
+    // Auto-refresh to reflect admin-side updates
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+  });
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'completed':
+      case 'success':
+      case 'approved':
+      case 'paid':
+        return 'text-green-600 bg-green-100';
+      case 'pending':
+      case 'processing':
+      case 'in-progress':
+      case 'in_progress':
+        return 'bg-yellow-300 text-yellow-700';
+      case 'cancelled':
+      case 'canceled':
+      case 'failed':
+      case 'rejected':
+      case 'declined':
+        return 'text-red-600 bg-red-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-md max-w-full max-h-[600px] overflow-auto">
       {/* Header */}
@@ -79,49 +125,50 @@ export default function RecentWithdrawals() {
       {/* List of withdrawals */}
       <div className="space-y-2 bg-[#EBEEF9] rounded-xl p-2 max-h-[400px] overflow-auto">
         {/* Header Row for Div "table" */}
-      <div className="hidden sm:flex text-gray-500 border-b border-gray-300 pb-2 mb-2 font-semibold select-none">
-        <div className="flex-[2] ml-4">NAME</div>
-        <div className="flex-[1]">AMOUNT</div>
-        <div className="flex-[1]">DATE</div>
-        <div className="flex-[1]">STATUS</div>
-        <div className="flex-[0.5]"></div>
-      </div>
-        {withdrawals.map((w) => (
-          <div
-            key={w.id}
-            className="flex items-center gap-2  rounded-md px-3 py-2 hover:bg-blue-100 cursor-pointer transition-colors"
-            role="row"
-            tabIndex={0}
-            aria-label={`Withdrawal by ${w.name} for ${w.amount} on ${w.date}, status: ${w.status}`}
-          >
-            <div className="flex-[2] flex items-center gap-2 font-medium text-gray-700 min-w-0">
-              <img
-                src={w.avatar}
-                alt={`${w.name} avatar`}
-                className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                draggable={false}
-              />
-              <span className="truncate">{w.name}</span>
+        <div className="hidden sm:flex text-gray-500 border-b border-gray-300 pb-2 mb-2 font-semibold select-none">
+          <div className="flex-[2] ml-4">NAME</div>
+          <div className="flex-[1]">AMOUNT</div>
+          <div className="flex-[1]">DATE</div>
+          <div className="flex-[1]">STATUS</div>
+          <div className="flex-[0.5]"></div>
+        </div>
+        {isLoading ? (
+          <div className="text-center p-4">Loading withdrawals...</div>
+        ) : isError ? (
+          <div className="text-center p-4 text-red-500">Failed to load withdrawals.</div>
+        ) : withdrawals && withdrawals.length > 0 ? (
+          withdrawals.map((w) => (
+            <div
+              key={w.id}
+              className="flex items-center gap-2  rounded-md px-3 py-2 hover:bg-blue-100 cursor-pointer transition-colors"
+              role="row"
+              tabIndex={0}
+              aria-label={`Withdrawal by ${w.name} for ${w.amount} on ${w.date}, status: ${w.status}`}
+            >
+              <div className="flex-[2] flex items-center gap-2 font-medium text-gray-700 min-w-0">
+                <span className="truncate">{w.name}</span>
+              </div>
+              <div className="flex-[1] text-gray-800 min-w-[80px]">{w.amount}</div>
+              <div className="flex-[1] text-gray-600 min-w-[80px]">{w.date}</div>
+              <div className="flex-[1]">
+                <span className={`px-2 py-1 rounded-md text-xs select-none ${getStatusColor(w.status)}`}>
+                  {w.statusLabel}
+                </span>
+              </div>
+              <div className="flex-[0.5] flex justify-center">
+                <AiOutlineEye className="text-gray-600 hover:text-indigo-600" aria-label="View details" />
+              </div>
             </div>
-            <div className="flex-[1] text-gray-800 min-w-[80px]">{w.amount}</div>
-            <div className="flex-[1] text-gray-600 min-w-[80px]">{w.date}</div>
-            <div className="flex-[1]">
-              <span className="text-green-600 bg-green-100 px-2 py-1 rounded-md text-xs select-none">
-                {w.status}
-              </span>
-            </div>
-            <div className="flex-[0.5] flex justify-center">
-              <AiOutlineEye className="text-gray-600 hover:text-indigo-600" aria-label="View details" />
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <div className="text-center p-4">No recent withdrawals found.</div>
+        )}
       </div>
 
-      {/* Footer */}
+      {/* Footer
       <div className="text-right mt-3">
         <button className="text-[15px] font-bold text-gray-600 hover:underline">See more</button>
-      </div>
+      </div> */}
     </div>
   );
 }
-

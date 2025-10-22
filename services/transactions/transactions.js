@@ -25,7 +25,7 @@ export const transactionsService = {
         return acc;
       }, {});
       const query = Object.keys(nonEmptyFilters).length > 0 ? { params: nonEmptyFilters } : {};
-      const response = await apiClient.get('/donation/', query);
+      const response = await apiClient.get(`${API_BASE_URL}/donation/`, query);
       return response.data;
     } catch (error) {
       if (error.response?.status === 401) {

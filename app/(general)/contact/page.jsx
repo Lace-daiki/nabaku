@@ -1,9 +1,5 @@
 
-import Image from 'next/image';
-import AboutCard from '@/components/general/about/about-card';
-import ContactCard from '@/components/general/contact';
 import Test from '@/components/general/contact/contact-us';
-import MapSection from '@/components/general/contact/map-section';
 
 
 export default async function ContactUS() {
@@ -17,7 +13,6 @@ export default async function ContactUS() {
         <div className='w-full h-full -mt-10 z-0 bg-white flex items-center justify-evenly gap-10 px-[40px] py-[150px] rounded-[20px]'>
             <Test/>
         </div>
-        <MapSection/>
     </>
   );
 }

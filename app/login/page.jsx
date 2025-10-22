@@ -3,10 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useLoginMutation } from '@/hooks/auth/useAuthMutation';
-import { ADMIN_CREDENTIALS } from '@/config/admin';
-import { useAuth } from '@/context/auth/AuthContext';
 import { toast } from 'react-toastify';
 import ForgetPasswordModal from '@/components/auth/forgot-password';
 
@@ -17,8 +14,6 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const { mutate: login, isPending } = useLoginMutation();
   const [isModalOpen, setIsModalOpen] = useState(false); // State to manage modal visibility
-  const router = useRouter();
-  const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,15 +25,7 @@ export default function LoginPage() {
     }
 
     try {
-      // Check if credentials match admin
-      if (id === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-        // Set admin user in auth context
-        authLogin({ ...ADMIN_CREDENTIALS });
-        router.push('/admin');
-        return;
-      }
-
-      // If not admin, proceed with normal login
+      // Proceed with normal login; role-based routing is handled in useLoginMutation
       await login({ id, password });
     } catch (err) {
       toast.error(err.message || 'Login failed. Please try again.');
@@ -53,7 +40,7 @@ export default function LoginPage() {
           <Image src="/login.png" alt="Illustration" width={400} height={746} />
         </div>
       </div>
-      
+
       {/* Right Section - Login Form */}
       <div className="border-1 rounded-[40px] m-4 p-8 w-[966px] h-[730px] flex flex-col justify-center">
         <div className="mb-30 ">
@@ -91,7 +78,7 @@ export default function LoginPage() {
                 />
                 Keep me logged in
               </label>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(true)} // Open the modal on click
                 className="text-[#54577A] focus:outline-none cursor-pointer"
               >
@@ -104,9 +91,9 @@ export default function LoginPage() {
             <p className="mt-2 text-center text-gray-500 text-[16px] font-medium">
               Don't have an account? <Link href="/register" className="text-[#1C1E4C]">Sign up</Link>
             </p>
-            <button 
+            <button
               onClick={handleSubmit}
-              type="submit" 
+              type="submit"
               className="bg-[#1C1E4C] text-white text-center py-[15px] px-[24px] rounded-[40px] cursor-pointer"
               disabled={isPending}
             >

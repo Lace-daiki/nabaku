@@ -18,7 +18,7 @@ const fetchTransactions = async () => {
       time: new Date(tx.createdAt).toLocaleString(),
       name: tx.fullname || tx.email || 'Anonymous',
       amount: `N${Number(tx.amount).toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
-      project: tx.project || '',
+      project: typeof tx.project === 'object' && tx.project !== null ? (tx.project.title || '') : (tx.project || ''),
       status: tx.status || '',
       raw: tx, // keep original for future use
     }));
@@ -57,15 +57,20 @@ export default function TransactionsTable() {
 
   const filterTransactions = (transactions, filters, search) => {
     return transactions.filter(tx => {
-      const matchesSearch = 
-        tx.name.toLowerCase().includes(search.toLowerCase()) ||
-        tx.id.toLowerCase().includes(search.toLowerCase()) ||
-        tx.project.toLowerCase().includes(search.toLowerCase());
-      
-      const matchesStatus = !filters.status || tx.status === filters.status;
-      const matchesProject = !filters.project || tx.project === filters.project;
+      const nameStr = (tx.name || '').toString().toLowerCase();
+      const idStr = (tx.id || '').toString().toLowerCase();
+      const projectStr = (tx.project || '').toString().toLowerCase();
+      const searchStr = (search || '').toString().toLowerCase();
 
-      const amountValue = parseFloat(tx.amount.replace(/[^0-9.]/g, ''));
+      const matchesSearch = 
+        nameStr.includes(searchStr) ||
+        idStr.includes(searchStr) ||
+        projectStr.includes(searchStr);
+      
+      const matchesStatus = !filters.status || (tx.status || '') === filters.status;
+      const matchesProject = !filters.project || (tx.project || '') === filters.project;
+
+      const amountValue = parseFloat((tx.amount || '').toString().replace(/[^0-9.]/g, ''));
       let matchesAmount = true;
       if (filters.amountRange === 'low') matchesAmount = amountValue < 100000;
       if (filters.amountRange === 'medium') matchesAmount = amountValue >= 100000 && amountValue < 500000;
@@ -79,7 +84,7 @@ export default function TransactionsTable() {
   const paginatedTransactions = filteredTransactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+    switch ((status || '').toLowerCase()) {
       case 'successful': return 'bg-green-100 text-green-700';
       case 'pending': return 'bg-yellow-100 text-yellow-700';
       case 'failed': return 'bg-red-100 text-red-700';
@@ -87,7 +92,8 @@ export default function TransactionsTable() {
     }
   };
 
-  const uniqueProjects = [...new Set(transactions?.map(tx => tx.project))];
+  const uniqueProjects = [...new Set((transactions || []).map(tx => (tx.project || '')).filter(Boolean))];
+
   const statusOptions = ['Successful', 'Pending', 'Failed'];
   const amountRanges = [
     { value: 'low', label: 'Low (< N100,000)' },

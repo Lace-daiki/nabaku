@@ -52,21 +52,6 @@ const Navbar = ({ user }) => {
 
           {/* Right side items */}
           <div className="flex items-center space-x-6">
-            {/* Notification Bell with Circular Border */}
-            <div className="relative">
-              <button
-                type="button"
-                className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1C1E4C]"
-              >
-                <span className="sr-only">View notifications</span>
-                <div className="h-12 w-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#1C1E4C]">
-                  <BellIcon className="h-7 w-7" />
-                </div>
-              </button>
-              {/* Notification badge */}
-              <span className="absolute top-0 right-0 h-3 w-3 rounded-full bg-red-500 border-2 border-white"></span>
-            </div>
-
             {/* Profile Avatar with Circular Border */}
             <div className="relative">
               <div className="h-12 w-12 rounded-full bg-[#1C1E4C] flex items-center justify-center text-white font-medium border-2 border-[#8E92BC]">

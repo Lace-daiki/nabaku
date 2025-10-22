@@ -44,5 +44,21 @@ export const activityService = {
       console.error('Activity service error:', error);
       throw error;
     }
+  },
+
+  async getPublicActivities(organizationId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/activity/public/${organizationId}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch public activities');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching public activities:', error);
+      throw error;
+    }
   }
 };

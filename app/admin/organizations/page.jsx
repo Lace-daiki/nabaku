@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import OrgCard from '@/components/admin/organization/org_card';
+import OrgaCard from '@/components/admin/organization/org_card';
 import { fetchOrganizations } from '@/services/admin/organization/org';
 
 export default function OrganizationsPage() {
@@ -46,7 +46,7 @@ export default function OrganizationsPage() {
       <h1 className="text-3xl font-bold mb-8">Organizations</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {organizations.map((organization) => (
-          <OrgCard key={organization.id} organization={organization} />
+          <OrgaCard key={organization.id} organization={organization} />
         ))}
       </div>
     </div>

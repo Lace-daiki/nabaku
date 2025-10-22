@@ -14,7 +14,8 @@ export default function NewActivityModal({ isOpen, onClose }) {
     name: '',
     start: '',
     end: '',
-    cover_image: null
+    cover_image: null,
+    location: ''
   });
   const [authError, setAuthError] = useState(false);
   const [fileError, setFileError] = useState('');
@@ -154,6 +155,19 @@ export default function NewActivityModal({ isOpen, onClose }) {
               type="text"
               name="name"
               value={formData.name}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-lg focus:border-blue-500 focus:outline-none"
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700 font-medium mb-2">Title</label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-lg focus:border-blue-500 focus:outline-none"
               required

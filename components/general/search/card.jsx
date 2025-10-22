@@ -31,11 +31,11 @@ export default function FundraiserCard({
             fill
             className="object-cover"
           />
-          {tag && (
+          {/* {tag && (
             <span className="absolute top-2 right-2 bg-white text-xs font-medium text-gray-700 px-2 py-1 rounded-full shadow">
               {tag}
             </span>
-          )}
+          )} */}
         </div>
 
         <div className="w-full h-[210px] pt-[24px] px-[24px] shadow pb-[32px] flex flex-col justify-between rounded-[10px] bg-[#EBEEF9]">
