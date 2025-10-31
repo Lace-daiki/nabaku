@@ -12,7 +12,7 @@ export default function ProjectDetailsContent({ project }) {
   const handleEndProject = async () => {
     try {
       await deleteMutation.mutateAsync(project._id);
-      router.push('/projects');
+      router.push('/dashboard/projects');
     } catch (error) {
       console.error('Error ending project:', error);
     }
@@ -75,14 +75,14 @@ export default function ProjectDetailsContent({ project }) {
             className="w-[216px] h-[44px] bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition-colors"
             disabled={deleteMutation.isPending}
           >
-            {deleteMutation.isPending ? 'Processing...' : 'End Project'}
+            {deleteMutation.isPending ? 'Processing...' : 'Delete Project'}
           </button>
           <button className="w-[216px] h-[44px] border text-gray-700 px-4 py-2 rounded-full hover:bg-gray-300 transition-colors">
-            Pause Project
+            Edit Project
           </button>
-          <button className="w-[216px] h-[44px] border text-gray-700 px-4 py-2 rounded-full hover:bg-gray-300 transition-colors">
+          {/* <button className="w-[216px] h-[44px] border text-gray-700 px-4 py-2 rounded-full hover:bg-gray-300 transition-colors">
             More options
-          </button>
+          </button> */}
         </div>
 
         {/* Project Description */}

@@ -43,7 +43,7 @@ const PriorityProjects = () => {
 
     return (
         <div className="w-full h-auto border border-gray-300 rounded-lg p-4 bg-white flex-col items-center shadow-md mt-5">
-                <h2 className="text-[18px] font-semibold">Priority projects</h2>
+                <h2 className="text-[18px] font-semibold">Recent project</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {projects.length === 0 ? (
                 <div className="col-span-2 flex flex-col items-center justify-center py-8 bg-gray-50 rounded-lg">

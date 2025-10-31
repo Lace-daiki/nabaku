@@ -18,7 +18,7 @@ export default function ProjectCard({ project, onClick }) {
           {project.title}
         </h4>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-gray-500">{project.progress || 0}%</span>
+          {/* <span className="text-gray-500">{project.progress || 0}%</span> */}
         </div>
         <div className="w-full bg-[#BAC8FF] rounded-full h-2 mb-4">
           <div 
@@ -26,8 +26,7 @@ export default function ProjectCard({ project, onClick }) {
             style={{ width: `${project.donated_amount / project.target_amount * 100 || 0}%` }}
           ></div>
         </div>
-        <div className="flex justify-between items-center text-gray-500">
-          <span className="text-[12px]  p-[12px] border-[1px] rounded-[8px] font-medium">{project.days_left || 0} days left</span>
+        <div className="flex justify-end items-center text-gray-500">
           <span className="text-sm ">₦{project.donated_amount || 0} / ₦{project.target_amount || 0}</span>
         </div>
       </div>
